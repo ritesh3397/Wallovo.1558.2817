@@ -1,0 +1,6 @@
+{
+  "name": "Wallovo",
+  "description": "A premium, dark-luxury AI SaaS testimonial platform designed to turn customer appreciation into direct conversions.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
