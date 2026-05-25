@@ -1,4 +1,5 @@
-import { Star } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { Star, Shield, Layout, Settings, LogOut, ChevronDown } from 'lucide-react';
 
 interface NavbarProps {
   activeView: 'marketing' | 'dashboard';
@@ -9,6 +10,21 @@ interface NavbarProps {
 }
 
 export default function Navbar({ activeView, setActiveView, onSubmitReviewClick, user, onLogout }: NavbarProps) {
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   return (
     <header className="fixed top-6 left-0 right-0 z-50 px-4">
       <div className="max-w-7xl mx-auto">
@@ -82,26 +98,81 @@ export default function Navbar({ activeView, setActiveView, onSubmitReviewClick,
                 </a>
               </>
             ) : (
-              <>
-                <a
-                  href="/profile.html"
-                  className="flex items-center gap-1.5 bg-white/5 hover:bg-[#FFB6C9]/15 text-white/90 hover:text-[#FFB6C9] text-xs px-3 py-1.5 rounded-full border border-white/5 hover:border-[#FFB6C9]/35 transition-all duration-300 cursor-pointer"
-                  title="View Profile"
-                >
-                  <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-[#FFB6C9] to-[#F472B6] flex items-center justify-center text-[9px] font-bold text-black uppercase shrink-0">
-                    {user.fullName ? user.fullName.substring(0, 2) : 'U'}
-                  </div>
-                  <span className="max-w-[80px] truncate hidden md:inline text-zinc-300 font-mono text-[10px]/none tracking-wider">{user.fullName || 'User'}</span>
-                </a>
-                
+              <div className="relative" ref={dropdownRef}>
                 <button
                   type="button"
-                  onClick={onLogout}
-                  className="text-[11px] uppercase tracking-wider text-rose-400 hover:text-rose-300 font-mono transition-colors px-2.5 py-2 cursor-pointer"
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  className="flex items-center gap-2 bg-[#0D0D0D]/65 hover:bg-[#FFB6C9]/15 text-white/90 hover:text-[#FFB6C9] text-xs px-3 py-1.5 rounded-full border border-white/5 hover:border-[#FFB6C9]/35 transition-all duration-300 cursor-pointer outline-none select-none relative group"
+                  title="Operator Session"
                 >
-                  Logout
+                  <div className="relative">
+                    <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-[#FFB6C9] to-[#F472B6] flex items-center justify-center text-[10px] font-bold text-black uppercase shrink-0">
+                      {user.fullName ? user.fullName.substring(0, 1).toUpperCase() : 'U'}
+                    </div>
+                    {/* Pulsing Active Online Glow Dot */}
+                    <div className="absolute -bottom-0.5 -right-0.5 w-2 h-2 bg-emerald-400 rounded-full border border-[#0D0D0D] shadow-[0_0_8px_#34D399]">
+                      <span className="animate-ping absolute inset-0 rounded-full bg-emerald-400 opacity-75"></span>
+                    </div>
+                  </div>
+                  <span className="max-w-[90px] truncate hidden sm:inline text-zinc-300 font-mono text-[10.5px] tracking-wider font-semibold group-hover:text-[#FFB6C9] transition-colors">{user.fullName || 'Operator'}</span>
+                  <ChevronDown className={`w-3.5 h-3.5 text-white/40 group-hover:text-[#FFB6C9] transition-transform duration-300 ${isDropdownOpen ? 'rotate-180 text-[#FFB6C9]' : ''}`} />
                 </button>
-              </>
+
+                {/* Dropdown Menu Container */}
+                {isDropdownOpen && (
+                  <div className="absolute right-0 top-11 mt-2 w-56 wallovo-glass rounded-2xl bg-[#0D0D0D]/95 border border-white/5 py-2 shadow-[0_15px_40px_rgba(0,0,0,0.85),0_0_30px_rgba(255,182,201,0.06)] overflow-hidden z-50 divide-y divide-white/5 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <div className="px-4 py-3 bg-white/[0.01]">
+                      <span className="inline-flex items-center gap-1 text-[8.5px] font-mono uppercase tracking-widest text-[#FFB6C9] bg-pink-500/10 px-2 py-0.5 rounded border border-pink-500/20">
+                        SLA Online
+                      </span>
+                      <p className="text-xs font-bold text-white truncate mt-2 font-display">{user.fullName || 'User'}</p>
+                      <p className="text-[10px] text-white/40 truncate font-mono mt-0.5">{user.email}</p>
+                    </div>
+                    
+                    <div className="py-1.5">
+                      <a
+                        href="/profile.html"
+                        className="flex items-center gap-2.5 px-4 py-2 text-xs text-zinc-300 hover:text-[#FFB6C9] hover:bg-white/[0.02] transition-colors font-sans group/drill"
+                      >
+                        <Shield className="w-3.5 h-3.5 text-white/40 group-hover/drill:text-[#FFB6C9] transition-colors" />
+                        <span>My Profile</span>
+                      </a>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setActiveView('dashboard');
+                          setIsDropdownOpen(false);
+                        }}
+                        className="w-full text-left flex items-center gap-2.5 px-4 py-2 text-xs text-zinc-300 hover:text-[#FFB6C9] hover:bg-white/[0.02] transition-colors font-sans group/drill cursor-pointer"
+                      >
+                        <Layout className="w-3.5 h-3.5 text-white/40 group-hover/drill:text-[#FFB6C9] transition-colors" />
+                        <span>Dashboard</span>
+                      </button>
+                      <a
+                        href="/profile.html"
+                        className="flex items-center gap-2.5 px-4 py-2 text-xs text-zinc-300 hover:text-[#FFB6C9] hover:bg-white/[0.02] transition-colors font-sans group/drill"
+                      >
+                        <Settings className="w-3.5 h-3.5 text-white/40 group-hover/drill:text-[#FFB6C9] transition-colors" />
+                        <span>Settings</span>
+                      </a>
+                    </div>
+
+                    <div className="py-1">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsDropdownOpen(false);
+                          onLogout();
+                        }}
+                        className="w-full text-left flex items-center gap-2.5 px-4 py-2.5 text-xs text-rose-400 hover:text-rose-300 hover:bg-rose-500/5 transition-colors font-sans cursor-pointer font-medium group/drill"
+                      >
+                        <LogOut className="w-3.5 h-3.5 text-rose-400/70 group-hover/drill:text-rose-300 transition-colors" />
+                        <span>Logout</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             )}
 
             <button
