@@ -63,7 +63,13 @@ export default function Navbar({ activeView, setActiveView, onSubmitReviewClick 
           </div>
 
           {/* Submit Action Block */}
-          <div>
+          <div className="flex items-center gap-3">
+            <a
+              href="/login.html"
+              className="text-xs text-brand-soft hover:text-[#FFB6C9] font-medium transition-colors px-3 py-2 cursor-pointer"
+            >
+              Sign In
+            </a>
             <button
               onClick={onSubmitReviewClick}
               className="relative group flex items-center gap-1.5 bg-white/5 hover:bg-white/10 text-white font-medium text-xs px-4 py-2 rounded-full border border-white/5 hover:border-[#FFB6C9]/25 transition-all duration-300 cursor-pointer"
