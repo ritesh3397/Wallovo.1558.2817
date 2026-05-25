@@ -42,12 +42,20 @@
           <span id="session-user-email" class="text-[10px] uppercase font-mono tracking-widest text-[#FFB6C9]">Operator</span>
         </div>
 
-        <button
-          id="logout-btn"
-          class="bg-white/5 hover:bg-rose-500/10 border border-white/10 hover:border-rose-500/25 text-white/80 hover:text-rose-400 text-xs font-semibold px-5 py-2 rounded-full transition-all duration-300 flex items-center gap-2 cursor-pointer"
-        >
-          Disconnect
-        </button>
+        <div class="flex items-center gap-3">
+          <a
+            href="/profile.html"
+            class="bg-[#0D0D0D] hover:bg-[#FFB6C9]/15 border border-white/10 hover:border-[#FFB6C9]/35 text-white/90 hover:text-[#FFB6C9] text-xs px-5 py-2 rounded-full transition-all duration-300 flex items-center gap-1 cursor-pointer"
+          >
+            Profile
+          </a>
+          <button
+            id="logout-btn"
+            class="bg-white/5 hover:bg-rose-500/10 border border-white/10 hover:border-rose-500/25 text-white/80 hover:text-rose-400 text-xs font-semibold px-5 py-2 rounded-full transition-all duration-300 flex items-center gap-2 cursor-pointer"
+          >
+            Disconnect
+          </button>
+        </div>
       </div>
     </header>
 

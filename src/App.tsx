@@ -4,6 +4,7 @@ import {
 } from 'lucide-react';
 import { Testimonial } from './types';
 import { INITIAL_TESTIMONIALS } from './data';
+import { supabase, isSupabaseConfigured } from './lib/supabase';
 
 // Component imports
 import Navbar from './components/Navbar';
@@ -18,6 +19,7 @@ import SubmitReviewModal from './components/SubmitReviewModal';
 
 export default function App() {
   const [activeView, setActiveView] = useState<'marketing' | 'dashboard'>('marketing');
+  const [user, setUser] = useState<{ email: string; fullName: string } | null>(null);
   
   // High-value global state: testimonials
   // Storing this at the parent level ensures that newly submitted reviews instantly show up 
@@ -48,6 +50,76 @@ export default function App() {
     }
   }, [notification]);
 
+  // Load session from Supabase on start or fall back to localStorage
+  useEffect(() => {
+    if (isSupabaseConfigured()) {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session && session.user) {
+          const u = session.user;
+          setUser({
+            email: u.email || '',
+            fullName: u.user_metadata?.full_name || u.email?.split('@')[0] || 'User'
+          });
+        } else {
+          setUser(null);
+        }
+      });
+
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+        if (session && session.user) {
+          const u = session.user;
+          setUser({
+            email: u.email || '',
+            fullName: u.user_metadata?.full_name || u.email?.split('@')[0] || 'User'
+          });
+        } else {
+          setUser(null);
+        }
+      });
+
+      return () => {
+        subscription.unsubscribe();
+      };
+    } else {
+      const checkMockUser = () => {
+        const mockUserStr = localStorage.getItem('mock_auth_user');
+        if (mockUserStr) {
+          const mockUser = JSON.parse(mockUserStr);
+          setUser({
+            email: mockUser.email,
+            fullName: mockUser.user_metadata?.full_name || mockUser.email.split('@')[0] || 'User'
+          });
+        } else {
+          setUser(null);
+        }
+      };
+
+      checkMockUser();
+      window.addEventListener('storage', checkMockUser);
+      return () => {
+        window.removeEventListener('storage', checkMockUser);
+      };
+    }
+  }, []);
+
+  // Redirect to login page if unauthenticated when attempting to view dashboard mode
+  useEffect(() => {
+    if (activeView === 'dashboard' && !user) {
+      window.location.href = '/login.html';
+    }
+  }, [activeView, user]);
+
+  const handleLogout = async () => {
+    if (isSupabaseConfigured()) {
+      await supabase.auth.signOut();
+    } else {
+      localStorage.removeItem('mock_auth_user');
+    }
+    setUser(null);
+    triggerNotification('Handshake disconnected. Active session cleared.', 'info');
+    setActiveView('marketing');
+  };
+
   // Scroll to top layout helper
   const handleScrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -77,6 +149,8 @@ export default function App() {
           handleScrollToTop();
         }}
         onSubmitReviewClick={() => setIsSubmitModalOpen(true)}
+        user={user}
+        onLogout={handleLogout}
       />
 
       {/* Floating Interactive Toast Alert */}

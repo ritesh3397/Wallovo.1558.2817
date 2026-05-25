@@ -1,0 +1,441 @@
+<!doctype html>
+<html lang="en" class="h-full">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Executive Profile — Wallovo AI</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <!-- Dynamic Tailwind CSS & System Styling -->
+    <link rel="stylesheet" href="/src/index.css" />
+    <!-- Supabase CDN Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+      /* Custom grid lines overlay */
+      .subsurface-grid {
+        background-image: 
+          linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+        background-size: 30px 30px;
+        background-position: center;
+      }
+    </style>
+  </head>
+  <body class="min-h-screen text-slate-300 flex flex-col justify-between selection:bg-[#FFB6C9] selection:text-black relative overflow-x-hidden bg-[#050505]">
+    
+    <!-- Cinematic backgrounds -->
+    <div class="absolute inset-0 z-0 subsurface-grid opacity-30 pointer-events-none"></div>
+    <!-- Ambient glowing nodes -->
+    <div class="absolute top-1/4 left-1/2 w-[600px] h-[600px] bg-[#F472B6]/5 rounded-full blur-[140px] pointer-events-none animate-pulse" style="animation-duration: 10s;"></div>
+ 
+    <!-- Luxury Compact Navbar inside Profile Area -->
+    <header class="relative z-10 px-8 pt-8 flex justify-center">
+      <div class="w-full max-w-5xl flex items-center justify-between wallovo-glass rounded-full px-6 py-3 border-white/5 bg-[#0D0D0D]/80">
+        <div class="flex items-center gap-2">
+          <a href="/index.html" class="flex items-center gap-2 group">
+            <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-[#FFB6C9] to-[#F472B6] shadow-[0_0_15px_rgba(255,182,201,0.3)] animate-pulse"></div>
+            <span class="text-lg font-bold tracking-tighter text-white font-display group-hover:text-[#FFB6C9] transition-colors">Wallovo</span>
+          </a>
+        </div>
+        
+        <!-- Navigation Hub inside Profile Navbar -->
+        <div class="flex items-center gap-4">
+          <a
+            href="/dashboard.html"
+            class="text-xs text-brand-soft hover:text-[#FFB6C9] font-medium transition-colors px-3 py-1.5 font-mono uppercase tracking-wider"
+          >
+            ← Back to Console
+          </a>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <!-- Live session status -->
+          <div id="session-pill" class="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-pink-500/10 border border-pink-400/20">
+            <span class="w-1.5 h-1.5 rounded-full bg-pink-400 animate-pulse"></span>
+            <span id="session-user-email" class="text-[10px] uppercase font-mono tracking-widest text-[#FFB6C9]">Operator</span>
+          </div>
+
+          <button
+            id="logout-btn"
+            class="bg-white/5 hover:bg-rose-500/10 border border-white/10 hover:border-rose-500/25 text-white/80 hover:text-rose-400 text-xs font-semibold px-5 py-2 rounded-full transition-all duration-300 flex items-center gap-2 cursor-pointer font-display uppercase tracking-widest"
+          >
+            Disconnect
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Profile Main View -->
+    <main class="relative z-10 flex-grow max-w-3xl w-full mx-auto px-8 py-12 flex flex-col gap-8">
+      
+      <!-- Back Page Action Header -->
+      <div class="flex items-center justify-between">
+        <div>
+          <span class="text-[10px] font-mono tracking-wider text-[#FFB6C9] bg-white/5 px-3 py-1 rounded-full border border-white/5 uppercase">
+            Account Management
+          </span>
+          <h1 class="font-display text-3xl font-bold text-white mt-3 tracking-tight">
+            Developer Credentials
+          </h1>
+          <p class="font-sans text-white/50 text-xs sm:text-sm mt-1">
+            Review and coordinate your local sandbox and live cluster identity.
+          </p>
+        </div>
+      </div>
+
+      <!-- Main Profile Glassmorphic Bento Card -->
+      <div class="wallovo-glass rounded-[28px] p-8 sm:p-10 relative overflow-hidden">
+        <div class="absolute top-0 inset-x-0 h-[1.5px] bg-gradient-to-r from-transparent via-[#FFB6C9]/40 to-transparent"></div>
+        
+        <div class="flex flex-col gap-8">
+          
+          <!-- Profile Avatar Placeholder Row -->
+          <div class="flex flex-col sm:flex-row items-center gap-6 pb-6 border-b border-white/5">
+            <div class="relative group">
+              <!-- Animated glow borders around Avatar -->
+              <div class="absolute -inset-1 rounded-full bg-gradient-to-tr from-[#FFB6C9] to-[#F472B6] opacity-30 group-hover:opacity-75 blur-[8px] transition-all duration-500"></div>
+              
+              <div class="relative w-24 h-24 rounded-full bg-[#0D0D0D] border-2 border-white/10 flex items-center justify-center overflow-hidden">
+                <span id="profile-avatar-letters" class="text-3xl font-display font-extrabold text-[#FFB6C9] tracking-tight">OP</span>
+              </div>
+            </div>
+            
+            <div class="text-center sm:text-left space-y-1">
+              <h2 id="profile-greet-title" class="font-display text-xl font-bold text-white">Operator Session</h2>
+              <p class="text-xs text-[#FFB6C9] font-mono tracking-widest uppercase" id="profile-sub-badge">PRO Developer</p>
+              <p class="text-[11px] text-white/40" id="profile-active-uuid">UUID: loading...</p>
+            </div>
+          </div>
+
+          <!-- Edit Credentials Form -->
+          <form id="profile-form" class="space-y-6">
+            
+            <!-- Grid fields Info -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              
+              <!-- Full Name (Editable) -->
+              <div class="space-y-2">
+                <label for="profile-full-name" class="block text-[9px] font-mono uppercase tracking-widest text-white/40">Full Name</label>
+                <input
+                  type="text"
+                  id="profile-full-name"
+                  required
+                  placeholder="Insert operator name"
+                  class="w-full bg-[#0D0D0D] border border-white/5 rounded-full px-5 py-4 text-xs font-mono text-white placeholder-white/20 hover:border-white/10 focus:border-[#FFB6C9]/50 focus:bg-black focus:ring-1 focus:ring-[#FFB6C9]/20 transition-all duration-300 outline-none shadow-inner"
+                />
+              </div>
+
+              <!-- Email Address (ReadOnly / Display Only with elegant style) -->
+              <div class="space-y-2">
+                <label for="profile-email" class="block text-[9px] font-mono uppercase tracking-widest text-white/40">Registered Email Address</label>
+                <div class="relative">
+                  <input
+                    type="email"
+                    id="profile-email"
+                    readonly
+                    class="w-full bg-[#050505]/80 border border-white/5 rounded-full px-5 py-4 text-xs font-mono text-white/55 cursor-not-allowed outline-none shadow-inner"
+                  />
+                  <!-- Lock Indicator -->
+                  <div class="absolute right-5 top-1/2 -translate-y-1/2">
+                    <svg class="w-3.5 h-3.5 text-white/20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Account Creation Date (Display Only) -->
+              <div class="space-y-2">
+                <label class="block text-[9px] font-mono uppercase tracking-widest text-white/40">Account Creation Date</label>
+                <div class="w-full bg-[#050505]/80 border border-white/5 rounded-full px-5 py-4 text-xs font-mono text-white/55 shadow-inner flex items-center justify-between">
+                  <span id="profile-created-date">May 25, 2026</span>
+                  <span class="text-[9px] font-mono text-emerald-400 font-bold uppercase tracking-wider bg-emerald-500/10 px-2 py-0.5 rounded">Handshake Secured</span>
+                </div>
+              </div>
+
+              <!-- Subscription Status (Display Only) -->
+              <div class="space-y-2">
+                <label class="block text-[9px] font-mono uppercase tracking-widest text-white/40">Deployment Subscription Status</label>
+                <div class="w-full bg-[#050505]/80 border border-white/5 rounded-full px-5 py-4 text-xs font-mono text-white/55 shadow-inner flex items-center justify-between">
+                  <span id="profile-status-tier">Pro Tier Allocation</span>
+                  <span class="text-[9px] font-mono text-[#FFB6C9] font-bold uppercase tracking-wider bg-pink-500/10 px-2 py-0.5 rounded" id="profile-status-badge">ACTIVE SLA</span>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Messages response -->
+            <div id="error-message" class="hidden text-xs text-rose-400 bg-rose-500/5 border border-rose-500/20 px-4 py-3 rounded-full text-center font-medium font-mono"></div>
+            <div id="success-message" class="hidden text-xs text-emerald-400 bg-emerald-500/5 border border-emerald-500/20 px-4 py-3 rounded-full text-center font-medium font-mono"></div>
+
+            <!-- Action buttons inside the Bento profile card -->
+            <div class="pt-6 border-t border-white/5 flex flex-col sm:flex-row items-center justify-end gap-3">
+              <a
+                href="/dashboard.html"
+                class="w-full sm:w-auto text-center px-6 py-4 rounded-full border border-white/5 hover:border-white/10 text-white/70 hover:text-white transition-all text-xs font-semibold cursor-pointer"
+              >
+                Cancel Changes
+              </a>
+              <button
+                type="submit"
+                id="save-profile-btn"
+                class="w-full sm:w-auto bg-gradient-to-r from-[#FFB6C9] to-[#F472B6] hover:brightness-110 text-black font-semibold text-xs py-4 px-8 rounded-full shadow-[0_0_20px_rgba(255,182,201,0.25)] transition-all duration-300 font-display uppercase tracking-widest cursor-pointer flex items-center justify-center gap-2"
+              >
+                Save Developer Profile
+              </button>
+            </div>
+
+          </form>
+
+        </div>
+      </div>
+    </main>
+
+    <!-- Floating Top-Banner status toast alert -->
+    <div id="toast" class="hidden fixed top-28 right-6 z-50 animate-bounce">
+      <div class="wallovo-glass rounded-2xl p-4 border-pink-500/20 flex items-center gap-3 shadow-2xl relative pr-10">
+        <div class="absolute top-0 inset-x-0 h-[1.5px] bg-[#FFB6C9]"></div>
+        <div class="w-8 h-8 rounded-full bg-pink-500/10 flex items-center justify-center border border-pink-500/25 shrink-0">
+          <span class="text-[#FFB6C9] font-bold text-xs">i</span>
+        </div>
+        <div class="text-left font-sans">
+          <span class="text-xs font-bold text-white block">Console Dispatch</span>
+          <p id="toast-text" class="text-[11px] text-zinc-300 pr-2">Security handshake completed.</p>
+        </div>
+        <button onclick="document.getElementById('toast').classList.add('hidden')" class="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white">
+          &times;
+        </button>
+      </div>
+    </div>
+
+    <!-- Aesthetic Footer info banner -->
+    <footer class="relative z-10 px-8 pb-8 flex flex-col sm:flex-row items-center justify-between text-white/20 text-[9px] uppercase tracking-[0.2em] font-medium gap-3">
+      <span>&copy; 2026 Wallovo AI Labs</span>
+      <div class="flex gap-4 sm:gap-8">
+        <span class="font-mono">Direct Profile Node Ready</span>
+      </div>
+    </footer>
+
+    <!-- LOGIC INTEGRATION script -->
+    <script>
+      // Load environment config gracefully
+      window.ENV = window.ENV || {};
+      window.ENV.SUPABASE_URL = window.ENV.SUPABASE_URL || "process.env.NEXT_PUBLIC_SUPABASE_URL" || "";
+      window.ENV.SUPABASE_ANON_KEY = window.ENV.SUPABASE_ANON_KEY || "process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY" || "";
+
+      // Quick fallback validation
+      const hasConfig = window.ENV.SUPABASE_URL && window.ENV.SUPABASE_ANON_KEY && 
+                        !window.ENV.SUPABASE_URL.includes("process.env");
+
+      let supabaseClient = null;
+      if (hasConfig) {
+        supabaseClient = supabase.createClient(window.ENV.SUPABASE_URL, window.ENV.SUPABASE_ANON_KEY);
+      } else {
+        console.warn("Supabase credentials missing on current frame runtime. Fallback mock simulator initialized.");
+      }
+
+      const sessionPill = document.getElementById('session-pill');
+      const sessionUserEmail = document.getElementById('session-user-email');
+      const logoutBtn = document.getElementById('logout-btn');
+      const toast = document.getElementById('toast');
+      const toastText = document.getElementById('toast-text');
+
+      // Profile form inputs and info
+      const profileForm = document.getElementById('profile-form');
+      const fullNameInput = document.getElementById('profile-full-name');
+      const emailInput = document.getElementById('profile-email');
+      const createdDateDisplay = document.getElementById('profile-created-date');
+      const statusTierDisplay = document.getElementById('profile-status-tier');
+      const welcomeGreet = document.getElementById('profile-greet-title');
+      const avatarLetters = document.getElementById('profile-avatar-letters');
+      const activeUuid = document.getElementById('profile-active-uuid');
+      const saveBtn = document.getElementById('save-profile-btn');
+      
+      const errorDiv = document.getElementById('error-message');
+      const successDiv = document.getElementById('success-message');
+
+      function triggerNotification(msg) {
+        toastText.textContent = msg;
+        toast.classList.remove('hidden');
+        setTimeout(() => {
+          toast.classList.add('hidden');
+        }, 4000);
+      }
+
+      function hideMessages() {
+        errorDiv.classList.add('hidden');
+        successDiv.classList.add('hidden');
+      }
+
+      function showError(msg) {
+        errorDiv.textContent = msg;
+        errorDiv.classList.remove('hidden');
+      }
+
+      function showSuccess(msg) {
+        successDiv.textContent = msg;
+        successDiv.classList.remove('hidden');
+      }
+
+      // Check auth session & populate profile info
+      async function checkSession() {
+        if (!supabaseClient) {
+          // Check mock storage
+          const mockUser = localStorage.getItem('mock_auth_user');
+          if (mockUser) {
+            const parsed = JSON.parse(mockUser);
+            setupProfile(parsed.email, parsed.user_metadata?.full_name, "2026-05-25", "MOCK_SESSION_UID_8841Z");
+            triggerNotification("Developer sandbox profile connected.");
+          } else {
+            console.warn("Unauthorized sandbox profile flow redirecting to login.");
+            window.location.href = '/login.html';
+          }
+          return;
+        }
+
+        try {
+          const { data: { session }, error } = await supabaseClient.auth.getSession();
+          if (error || !session) {
+            window.location.href = '/login.html';
+            return;
+          }
+
+          const user = session.user;
+          const fullName = user.user_metadata?.full_name || user.email.split('@')[0];
+          setupProfile(user.email, fullName, user.created_at, user.id);
+          triggerNotification("Operator profile clearance handshake succeeded.");
+        } catch (err) {
+          console.error("Auth profile check failed:", err);
+          window.location.href = '/login.html';
+        }
+      }
+
+      function setupProfile(email, name, createdAt, id) {
+        // Setup navbar
+        sessionUserEmail.textContent = email;
+        sessionPill.classList.remove('hidden');
+
+        // Setup form fields
+        fullNameInput.value = name || "";
+        emailInput.value = email || "";
+        
+        // Formatting created date
+        try {
+          if (createdAt) {
+            const dateObj = new Date(createdAt);
+            createdDateDisplay.textContent = dateObj.toLocaleDateString('en-US', {
+              year: 'numeric',
+              month: 'long',
+              day: 'numeric'
+            });
+          }
+        } catch (_) {}
+
+        // Set Greet Title
+        const capitalized = name ? name.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') : "Operator";
+        welcomeGreet.textContent = capitalized;
+        
+        // Setup avatar letters
+        if (capitalized) {
+          const parts = capitalized.split(' ');
+          if (parts.length >= 2) {
+            avatarLetters.textContent = (parts[0].charAt(0) + parts[1].charAt(0)).toUpperCase();
+          } else {
+            avatarLetters.textContent = capitalized.substring(0, 2).toUpperCase();
+          }
+        }
+
+        // Set active UUID display
+        activeUuid.textContent = `UUID: ${id}`;
+      }
+
+      // Profile Save Form Action
+      profileForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        hideMessages();
+        
+        const updatedName = fullNameInput.value.trim();
+        if (!updatedName) {
+          showError("Enter a valid name.");
+          return;
+        }
+
+        saveBtn.disabled = true;
+        saveBtn.textContent = "Saving Credentials...";
+
+        if (!supabaseClient) {
+          // Update local mock user
+          setTimeout(() => {
+            const mockUserStr = localStorage.getItem('mock_auth_user');
+            if (mockUserStr) {
+              const mockUser = JSON.parse(mockUserStr);
+              mockUser.user_metadata = mockUser.user_metadata || {};
+              mockUser.user_metadata.full_name = updatedName;
+              localStorage.setItem('mock_auth_user', JSON.stringify(mockUser));
+            }
+            showSuccess("Credentials updated successfully inside development sandbox!");
+            saveBtn.disabled = false;
+            saveBtn.textContent = "Save Developer Profile";
+            
+            // Re-setup display titles
+            setupProfile(emailInput.value, updatedName, "2026-05-25", "MOCK_SESSION_UID_8841Z");
+          }, 1000);
+          return;
+        }
+
+        try {
+          const { data, error } = await supabaseClient.auth.updateUser({
+            data: {
+              full_name: updatedName
+            }
+          });
+
+          if (error) {
+            showError(error.message);
+            saveBtn.disabled = false;
+            saveBtn.textContent = "Save Developer Profile";
+            return;
+          }
+
+          if (data && data.user) {
+            showSuccess("Handshake updated! Corporate profile synchronized perfectly.");
+            
+            // Re-render
+            const fullName = data.user.user_metadata?.full_name || data.user.email.split('@')[0];
+            setupProfile(data.user.email, fullName, data.user.created_at, data.user.id);
+            
+            setTimeout(() => {
+              hideMessages();
+            }, 3000);
+          }
+        } catch (err) {
+          showError(err.message || "Credential service timed out. Please retry.");
+        } finally {
+          saveBtn.disabled = false;
+          saveBtn.textContent = "Save Developer Profile";
+        }
+      });
+
+      // Logout handler
+      logoutBtn.addEventListener('click', async () => {
+        if (!supabaseClient) {
+          localStorage.removeItem('mock_auth_user');
+          window.location.href = '/login.html';
+          return;
+        }
+
+        try {
+          const { error } = await supabaseClient.auth.signOut();
+          if (error) throw error;
+          window.location.href = '/login.html';
+        } catch (err) {
+          console.error("Logout execution error:", err);
+          window.location.href = '/login.html'; // Fallback redirect anyway
+        }
+      });
+
+      // Execute on DOM load
+      document.addEventListener('DOMContentLoaded', checkSession);
+    </script>
+  </body>
+</html>

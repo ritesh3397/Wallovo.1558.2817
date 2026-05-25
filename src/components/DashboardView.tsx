@@ -191,9 +191,17 @@ export default function DashboardView({ testimonials, setTestimonials }: Dashboa
         {/* Dynamic header summary */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
           <div className="text-left">
-            <span className="text-[10px] font-mono tracking-wider text-[#FFB6C9] bg-white/5 px-3 py-1 rounded-full border border-white/5 uppercase">
-              PRO ACCOUNT SUITE
-            </span>
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="text-[10px] font-mono tracking-wider text-[#FFB6C9] bg-white/5 px-3 py-1 rounded-full border border-white/5 uppercase">
+                PRO ACCOUNT SUITE
+              </span>
+              <a
+                href="/dashboard.html"
+                className="text-[9px] font-mono tracking-wider text-[#FFB6C9] hover:text-white bg-pink-500/10 hover:bg-[#F472B6]/20 px-2.5 py-1 rounded-full border border-pink-500/25 uppercase transition-all duration-300"
+              >
+                Go to Standalone Console →
+              </a>
+            </div>
             <h1 className="font-display text-2xl sm:text-4xl font-bold text-white mt-3 tracking-tight">
               AI Command Console
             </h1>

@@ -27,6 +27,7 @@ export default defineConfig(({ mode }) => {
           login: path.resolve(__dirname, 'login.html'),
           signup: path.resolve(__dirname, 'signup.html'),
           dashboard: path.resolve(__dirname, 'dashboard.html'),
+          profile: path.resolve(__dirname, 'profile.html'),
         },
       },
     },
