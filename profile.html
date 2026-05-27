@@ -41,14 +41,26 @@
         <!-- Navigation Hub inside Profile Navbar -->
         <div class="flex items-center gap-4">
           <a
+            href="/index.html"
+            class="hidden md:inline-flex text-[10px] text-[#FFB6C9] bg-pink-500/10 border border-pink-500/20 hover:bg-[#FFB6C9]/15 hover:border-[#FFB6C9]/40 font-mono tracking-widest uppercase px-3 py-1.5 rounded-full transition-all duration-300"
+          >
+            ← Back to Home
+          </a>
+          <a
             href="/dashboard.html"
-            class="text-xs text-brand-soft hover:text-[#FFB6C9] font-medium transition-colors px-3 py-1.5 font-mono uppercase tracking-wider"
+            class="text-xs text-brand-soft hover:text-[#FFB6C9] font-medium transition-colors px-3 py-1.5 font-mono uppercase tracking-wider animate-pulse"
           >
             ← Back to Console
           </a>
         </div>
 
         <div class="flex items-center gap-3">
+          <a
+            href="/index.html"
+            class="md:hidden bg-[#0D0D0D] hover:bg-[#FFB6C9]/15 border border-white/5 hover:border-[#FFB6C9]/35 text-zinc-300 hover:text-[#FFB6C9] text-xs px-3 py-2 rounded-full transition-all duration-300"
+          >
+            Home
+          </a>
           <!-- Live session status -->
           <div id="session-pill" class="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-pink-500/10 border border-pink-400/20">
             <span class="w-1.5 h-1.5 rounded-full bg-pink-400 animate-pulse"></span>

@@ -19,7 +19,21 @@ import SubmitReviewModal from './components/SubmitReviewModal';
 
 export default function App() {
   const [activeView, setActiveView] = useState<'marketing' | 'dashboard'>('marketing');
-  const [user, setUser] = useState<{ email: string; fullName: string } | null>(null);
+  const [user, setUser] = useState<{ email: string; fullName: string } | null>(() => {
+    try {
+      const mockUserStr = localStorage.getItem('mock_auth_user');
+      if (mockUserStr) {
+        const mockUser = JSON.parse(mockUserStr);
+        return {
+          email: mockUser.email,
+          fullName: mockUser.user_metadata?.full_name || mockUser.email.split('@')[0] || 'User'
+        };
+      }
+    } catch (e) {
+      console.error("Failed to parse instant user session:", e);
+    }
+    return null;
+  });
   
   // High-value global state: testimonials
   // Storing this at the parent level ensures that newly submitted reviews instantly show up 

@@ -22,10 +22,15 @@
     <!-- Header / Logo section -->
     <header class="relative z-10 px-8 pt-8 flex justify-center">
       <div class="w-full max-w-5xl flex items-center justify-between">
-        <a href="/" class="flex items-center gap-2 group">
-          <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-[#FFB6C9] to-[#F472B6] shadow-[0_0_15px_rgba(255,182,201,0.3)] transition-transform duration-500 group-hover:rotate-180"></div>
-          <span class="text-lg font-bold tracking-tighter text-white font-display">Wallovo</span>
-        </a>
+        <div class="flex items-center gap-4">
+          <a href="/index.html" class="flex items-center gap-2 group">
+            <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-[#FFB6C9] to-[#F472B6] shadow-[0_0_15px_rgba(255,182,201,0.3)] transition-transform duration-500 group-hover:rotate-180"></div>
+            <span class="text-lg font-bold tracking-tighter text-white font-display group-hover:text-[#FFB6C9] transition-colors">Wallovo</span>
+          </a>
+          <a href="/index.html" class="text-[9px] text-[#FFB6C9] bg-pink-500/10 border border-pink-500/20 hover:bg-[#FFB6C9]/15 hover:border-[#FFB6C9]/40 font-mono tracking-widest uppercase px-3 py-1 rounded-full transition-all duration-300">
+            ← Home
+          </a>
+        </div>
         <div class="flex items-center gap-3">
           <span class="text-[10px] uppercase font-mono tracking-widest text-[#FFB6C9] bg-pink-500/10 px-3 py-1 rounded-full border border-pink-400/20">Alpha V2.0</span>
         </div>
@@ -135,6 +140,19 @@
       }
       autoRedirect();
 
+      // Seed default sandbox operator token if mock accounts list is currently blank
+      if (!localStorage.getItem('wallovo_mock_accounts')) {
+        const initialMockAccounts = [
+          {
+            email: "test@example.com",
+            password: "password",
+            fullName: "Ritesh",
+            createdAt: new Date().toISOString()
+          }
+        ];
+        localStorage.setItem('wallovo_mock_accounts', JSON.stringify(initialMockAccounts));
+      }
+
       const form = document.getElementById('login-form');
       const emailInput = document.getElementById('email');
       const passwordInput = document.getElementById('password');
@@ -182,16 +200,33 @@
         // Mock mode handler if Supabase not configured
         if (!supabaseClient) {
           setTimeout(() => {
-            const hasMockSignup = localStorage.getItem('mock_auth_user');
-            if (hasMockSignup) {
-              const parsed = JSON.parse(hasMockSignup);
-              if (parsed.email === email && password === "mockpassword") {
-                // Success
-              }
+            const mockAccounts = JSON.parse(localStorage.getItem('wallovo_mock_accounts') || '[]');
+            const matchedAccount = mockAccounts.find(acc => acc.email.toLowerCase() === email.toLowerCase());
+
+            if (!matchedAccount) {
+              showError("User not found");
+              submitBtn.disabled = false;
+              submitBtn.innerHTML = "Authorize Login";
+              return;
             }
-            
+
+            if (matchedAccount.password !== password) {
+              showError("Wrong password");
+              submitBtn.disabled = false;
+              submitBtn.innerHTML = "Authorize Login";
+              return;
+            }
+
+            // Successfully authenticated
             showSuccess("Access verified! Routing to dashboard pipeline...");
-            localStorage.setItem('mock_auth_user', JSON.stringify({ email, user_metadata: { full_name: email.split('@')[0] } }));
+            localStorage.setItem('mock_auth_user', JSON.stringify({ 
+              email: matchedAccount.email, 
+              user_metadata: { full_name: matchedAccount.fullName || matchedAccount.email.split('@')[0] } 
+            }));
+            
+            // Dispatch event to sync other open tabs
+            window.dispatchEvent(new Event('storage'));
+
             setTimeout(() => {
               window.location.href = '/dashboard.html';
             }, 1200);

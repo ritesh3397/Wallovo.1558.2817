@@ -31,9 +31,17 @@
     <!-- Luxury Compact Navbar inside Executive Area -->
     <header class="relative z-10 px-8 pt-8 flex justify-center">
       <div class="w-full max-w-5xl flex items-center justify-between wallovo-glass rounded-full px-6 py-3 border-white/5 bg-[#0D0D0D]/80">
-        <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-[#FFB6C9] to-[#F472B6] shadow-[0_0_15px_rgba(255,182,201,0.3)]"></div>
-          <span class="text-lg font-bold tracking-tighter text-white font-display">Wallovo</span>
+        <div class="flex items-center gap-3">
+          <a href="/index.html" class="flex items-center gap-2 group">
+            <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-[#FFB6C9] to-[#F472B6] shadow-[0_0_15px_rgba(255,182,201,0.3)] transition-transform duration-500 group-hover:rotate-180"></div>
+            <span class="text-lg font-bold tracking-tighter text-white font-display group-hover:text-[#FFB6C9] transition-colors">Wallovo</span>
+          </a>
+          <a
+            href="/index.html"
+            class="hidden md:inline-flex text-[9px] text-[#FFB6C9] bg-pink-500/10 border border-pink-500/20 hover:bg-[#FFB6C9]/15 hover:border-[#FFB6C9]/40 font-mono tracking-widest uppercase px-3 py-1.5 rounded-full transition-all duration-300"
+          >
+            ← Back to Home
+          </a>
         </div>
         
         <!-- Live session status -->
@@ -43,6 +51,12 @@
         </div>
 
         <div class="flex items-center gap-3">
+          <a
+            href="/index.html"
+            class="md:hidden bg-[#0D0D0D] hover:bg-[#FFB6C9]/15 border border-white/5 hover:border-[#FFB6C9]/35 text-zinc-300 hover:text-[#FFB6C9] text-xs px-3 py-2 rounded-full transition-all duration-300"
+          >
+            Home
+          </a>
           <a
             href="/profile.html"
             class="bg-[#0D0D0D] hover:bg-[#FFB6C9]/15 border border-white/10 hover:border-[#FFB6C9]/35 text-white/90 hover:text-[#FFB6C9] text-xs px-5 py-2 rounded-full transition-all duration-300 flex items-center gap-1 cursor-pointer"

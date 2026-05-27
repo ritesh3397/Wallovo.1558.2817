@@ -22,10 +22,15 @@
     <!-- Header / Logo section -->
     <header class="relative z-10 px-8 pt-8 flex justify-center">
       <div class="w-full max-w-5xl flex items-center justify-between">
-        <a href="/" class="flex items-center gap-2 group">
-          <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-[#FFB6C9] to-[#F472B6] shadow-[0_0_15px_rgba(255,182,201,0.3)] transition-transform duration-500 group-hover:rotate-180"></div>
-          <span class="text-lg font-bold tracking-tighter text-white font-display">Wallovo</span>
-        </a>
+        <div class="flex items-center gap-4">
+          <a href="/index.html" class="flex items-center gap-2 group">
+            <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-[#FFB6C9] to-[#F472B6] shadow-[0_0_15px_rgba(255,182,201,0.3)] transition-transform duration-500 group-hover:rotate-180"></div>
+            <span class="text-lg font-bold tracking-tighter text-white font-display group-hover:text-[#FFB6C9] transition-colors">Wallovo</span>
+          </a>
+          <a href="/index.html" class="text-[9px] text-[#FFB6C9] bg-pink-500/10 border border-pink-500/20 hover:bg-[#FFB6C9]/15 hover:border-[#FFB6C9]/40 font-mono tracking-widest uppercase px-3 py-1 rounded-full transition-all duration-300">
+            ← Home
+          </a>
+        </div>
         <div class="flex items-center gap-3">
           <span class="text-[10px] uppercase font-mono tracking-widest text-[#FFB6C9] bg-pink-500/10 px-3 py-1 rounded-full border border-pink-400/20">Alpha V2.0</span>
         </div>
@@ -197,8 +202,35 @@
         // Mock mode handler if Supabase not configured
         if (!supabaseClient) {
           setTimeout(() => {
+            let mockAccounts = JSON.parse(localStorage.getItem('wallovo_mock_accounts') || '[]');
+            const emailExists = mockAccounts.some(acc => acc.email.toLowerCase() === email.toLowerCase());
+            if (emailExists) {
+              showError("Account already exists. Please login.");
+              submitBtn.disabled = false;
+              submitBtn.textContent = "Create Account";
+              return;
+            }
+
+            // Create new mock account
+            const newAcc = {
+              email: email,
+              password: password,
+              fullName: fullName,
+              createdAt: new Date().toISOString()
+            };
+            mockAccounts.push(newAcc);
+            localStorage.setItem('wallovo_mock_accounts', JSON.stringify(mockAccounts));
+
             showSuccess("Account simulated! Welcome to the loop. Redirecting...");
-            localStorage.setItem('mock_auth_user', JSON.stringify({ email, user_metadata: { full_name: fullName } }));
+            localStorage.setItem('mock_auth_user', JSON.stringify({
+              email: email,
+              user_metadata: { full_name: fullName },
+              created_at: newAcc.createdAt
+            }));
+
+            // Dispatch event to keep other tabs/windows in sync
+            window.dispatchEvent(new Event('storage'));
+
             setTimeout(() => {
               window.location.href = '/dashboard.html';
             }, 1200);
@@ -218,10 +250,10 @@
           });
 
           if (error) {
-            if (error.message.toLowerCase().includes("exists") || error.code === "user_already_exists") {
-              showError("Email already exists");
+            if (error.message.toLowerCase().includes("exists") || error.code === "user_already_exists" || error.status === 400) {
+              showError("Account already exists. Please login.");
             } else if (error.message.toLowerCase().includes("weak")) {
-              showError("Weak password");
+              showError("Weak password — must be at least 6 characters.");
             } else {
               showError(error.message);
             }
@@ -231,14 +263,23 @@
           }
 
           if (data && data.user) {
-            // Check if user authenticated immediately (auto-confirm is toggled on inside Supabase)
+            // Check identities to prevent stealth duplicates under email_confirm configuration
+            if (data.user.identities && data.user.identities.length === 0) {
+              showError("Account already exists. Please login.");
+              submitBtn.disabled = false;
+              submitBtn.textContent = "Create Account";
+              return;
+            }
+
+            // Check if user authenticated immediately
             if (data.session) {
               showSuccess("Account verified! Forwarding to executive dashboard...");
               setTimeout(() => {
                 window.location.href = '/dashboard.html';
               }, 1200);
             } else {
-              showSuccess("You're on the list! We'll notify you soon 🎉 Please check your email to verify!");
+              // Sign-up succeeded but confirmation is required or enabled
+              showSuccess("Account created successfully! Please verify your email or sign in to confirm!");
               form.reset();
               submitBtn.disabled = false;
               submitBtn.textContent = "Create Account";
