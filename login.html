@@ -197,72 +197,55 @@
           Authorizing...
         `;
 
-        // Mock mode handler if Supabase not configured
+        // Check if Supabase is connected
         if (!supabaseClient) {
-          setTimeout(() => {
-            const mockAccounts = JSON.parse(localStorage.getItem('wallovo_mock_accounts') || '[]');
-            const matchedAccount = mockAccounts.find(acc => acc.email.toLowerCase() === email.toLowerCase());
-
-            if (!matchedAccount) {
-              showError("User not found");
-              submitBtn.disabled = false;
-              submitBtn.innerHTML = "Authorize Login";
-              return;
-            }
-
-            if (matchedAccount.password !== password) {
-              showError("Wrong password");
-              submitBtn.disabled = false;
-              submitBtn.innerHTML = "Authorize Login";
-              return;
-            }
-
-            // Successfully authenticated
-            showSuccess("Access verified! Routing to dashboard pipeline...");
-            localStorage.setItem('mock_auth_user', JSON.stringify({ 
-              email: matchedAccount.email, 
-              user_metadata: { full_name: matchedAccount.fullName || matchedAccount.email.split('@')[0] } 
-            }));
-            
-            // Dispatch event to sync other open tabs
-            window.dispatchEvent(new Event('storage'));
-
-            setTimeout(() => {
-              window.location.href = '/dashboard.html';
-            }, 1200);
-          }, 1000);
+          console.error("Supabase connection: inactive or unconfigured.");
+          showError("Wallovo Database is unindexed: Pls configure VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in settings.");
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = "Authorize Login";
           return;
         }
 
+        console.log("Supabase connection: active. Handshaking client login credentials.");
+
         try {
+          console.log("Submitting login payload to Supabase for:", email);
           const { data, error } = await supabaseClient.auth.signInWithPassword({
             email: email,
             password: password,
           });
 
           if (error) {
-            if (error.message.toLowerCase().includes("invalid login") || error.message.toLowerCase().includes("incorrect") || error.message.toLowerCase().includes("credentials")) {
-              showError("Wrong password or email — check credentials.");
-            } else if (error.message.toLowerCase().includes("not found") || error.message.toLowerCase().includes("no user") || error.message.toLowerCase().includes("does not exist")) {
-              showError("User not found");
+            console.error("Supabase login error response received:", error);
+            const errMsg = error.message.toLowerCase();
+            
+            if (errMsg.includes("invalid login credentials") || errMsg.includes("incorrect password") || errMsg.includes("invalid password")) {
+              showError("Incorrect password");
+            } else if (errMsg.includes("not found") || errMsg.includes("no user") || errMsg.includes("does not exist") || errMsg.includes("invalid claim") || errMsg.includes("email not confirmed")) {
+              showError("No account found");
             } else {
               showError(error.message);
             }
             submitBtn.disabled = false;
-            submitBtn.textContent = "Authorize Login";
+            submitBtn.innerHTML = "Authorize Login";
             return;
           }
 
+          console.log("Supabase login response success:", data);
           if (data && data.user) {
+            const sessionState = await supabaseClient.auth.getSession();
+            console.log("Current session state updated:", sessionState);
+            
             showSuccess("Access verified! Forwarding to executive dashboard...");
             setTimeout(() => {
               window.location.href = '/dashboard.html';
             }, 1200);
           }
         } catch (err) {
+          console.error("Login process exception triggered:", err);
           showError(err.message || "An authentication server exception triggered. Please retry.");
           submitBtn.disabled = false;
-          submitBtn.textContent = "Authorize Login";
+          submitBtn.innerHTML = "Authorize Login";
         }
       });
     </script>

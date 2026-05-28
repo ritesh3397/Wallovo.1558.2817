@@ -292,22 +292,21 @@
       // Check auth session & populate profile info
       async function checkSession() {
         if (!supabaseClient) {
-          // Check mock storage
-          const mockUser = localStorage.getItem('mock_auth_user');
-          if (mockUser) {
-            const parsed = JSON.parse(mockUser);
-            setupProfile(parsed.email, parsed.user_metadata?.full_name, "2026-05-25", "MOCK_SESSION_UID_8841Z");
-            triggerNotification("Developer sandbox profile connected.");
-          } else {
-            console.warn("Unauthorized sandbox profile flow redirecting to login.");
+          console.error("Profile loaded without active database credentials.");
+          triggerNotification("Notice: Define VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to unlock profile customization.");
+          setTimeout(() => {
             window.location.href = '/login.html';
-          }
+          }, 3000);
           return;
         }
 
         try {
+          console.log("Profile session: requesting credential token...");
           const { data: { session }, error } = await supabaseClient.auth.getSession();
+          console.log("Profile session response:", { session, error });
+          
           if (error || !session) {
+            console.warn("No active authenticated user. Navigating to login vault.");
             window.location.href = '/login.html';
             return;
           }
@@ -317,7 +316,7 @@
           setupProfile(user.email, fullName, user.created_at, user.id);
           triggerNotification("Operator profile clearance handshake succeeded.");
         } catch (err) {
-          console.error("Auth profile check failed:", err);
+          console.error("Auth profile check exception triggered:", err);
           window.location.href = '/login.html';
         }
       }
@@ -376,26 +375,15 @@
         saveBtn.textContent = "Saving Credentials...";
 
         if (!supabaseClient) {
-          // Update local mock user
-          setTimeout(() => {
-            const mockUserStr = localStorage.getItem('mock_auth_user');
-            if (mockUserStr) {
-              const mockUser = JSON.parse(mockUserStr);
-              mockUser.user_metadata = mockUser.user_metadata || {};
-              mockUser.user_metadata.full_name = updatedName;
-              localStorage.setItem('mock_auth_user', JSON.stringify(mockUser));
-            }
-            showSuccess("Credentials updated successfully inside development sandbox!");
-            saveBtn.disabled = false;
-            saveBtn.textContent = "Save Developer Profile";
-            
-            // Re-setup display titles
-            setupProfile(emailInput.value, updatedName, "2026-05-25", "MOCK_SESSION_UID_8841Z");
-          }, 1000);
+          console.error("Database connection: inactive.");
+          showError("Supabase connection is inactive.");
+          saveBtn.disabled = false;
+          saveBtn.textContent = "Save Developer Profile";
           return;
         }
 
         try {
+          console.log("Submitting updated full_name metadata to Supabase auth:", updatedName);
           const { data, error } = await supabaseClient.auth.updateUser({
             data: {
               full_name: updatedName
@@ -403,12 +391,14 @@
           });
 
           if (error) {
+            console.error("Profile update error response:", error);
             showError(error.message);
             saveBtn.disabled = false;
             saveBtn.textContent = "Save Developer Profile";
             return;
           }
 
+          console.log("Profile update success response:", data);
           if (data && data.user) {
             showSuccess("Handshake updated! Corporate profile synchronized perfectly.");
             
@@ -421,6 +411,7 @@
             }, 3000);
           }
         } catch (err) {
+          console.error("Error updating profile settings:", err);
           showError(err.message || "Credential service timed out. Please retry.");
         } finally {
           saveBtn.disabled = false;
@@ -437,8 +428,14 @@
         }
 
         try {
+          console.log("Signing out active profile session...");
           const { error } = await supabaseClient.auth.signOut();
-          if (error) throw error;
+          if (error) {
+            console.error("SignOut error:", error);
+            throw error;
+          }
+          console.log("SignOut success.");
+          localStorage.removeItem('mock_auth_user');
           window.location.href = '/index.html';
         } catch (err) {
           console.error("Logout execution error:", err);

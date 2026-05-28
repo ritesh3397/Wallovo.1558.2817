@@ -240,8 +240,9 @@
       let supabaseClient = null;
       if (hasConfig) {
         supabaseClient = supabase.createClient(window.ENV.SUPABASE_URL, window.ENV.SUPABASE_ANON_KEY);
+        console.log("Supabase connection: active in dashboard.");
       } else {
-        console.warn("Supabase credentials missing on current frame runtime. Fallback mock simulator initialized.");
+        console.error("Supabase connection: inactive or unconfigured in dashboard.");
       }
 
       const sessionPill = document.getElementById('session-pill');
@@ -262,22 +263,22 @@
       // Check auth session
       async function checkSession() {
         if (!supabaseClient) {
-          // Check mock storage
-          const mockUser = localStorage.getItem('mock_auth_user');
-          if (mockUser) {
-            const parsed = JSON.parse(mockUser);
-            setupUserInfo(parsed.email, parsed.user_metadata?.full_name);
-            triggerNotification("Developer sandbox environment connected.");
-          } else {
-            console.warn("Unauthorized sandbox flow redirecting to authentication root.");
+          console.error("Dashboard loaded without Supabase keys.");
+          welcomeTitle.innerHTML = `Welcome to <span class="text-[#FFB6C9] font-display">Console</span>`;
+          triggerNotification("Notice: Define VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to unlock authentication.");
+          setTimeout(() => {
             window.location.href = '/login.html';
-          }
+          }, 3000);
           return;
         }
 
         try {
+          console.log("Fetching active session state...");
           const { data: { session }, error } = await supabaseClient.auth.getSession();
+          console.log("Session response:", { session, error });
+          
           if (error || !session) {
+            console.warn("No active session recognized. Redirecting to auth vault.");
             window.location.href = '/login.html';
             return;
           }
@@ -287,7 +288,7 @@
           setupUserInfo(user.email, fullName);
           triggerNotification("Operator pipeline handshake cleared: US-EAST-1.");
         } catch (err) {
-          console.error("Auth security boundary failed:", err);
+          console.error("Auth security boundary encountered exception:", err);
           window.location.href = '/login.html';
         }
       }
@@ -304,14 +305,21 @@
       // Logout handler
       logoutBtn.addEventListener('click', async () => {
         if (!supabaseClient) {
+          console.warn("Destroying unconfigured mock session details.");
           localStorage.removeItem('mock_auth_user');
           window.location.href = '/index.html';
           return;
         }
 
         try {
+          console.log("Signing out active session...");
           const { error } = await supabaseClient.auth.signOut();
-          if (error) throw error;
+          if (error) {
+            console.error("SignOut error response:", error);
+            throw error;
+          }
+          console.log("Logged out successfully.");
+          localStorage.removeItem('mock_auth_user');
           window.location.href = '/index.html';
         } catch (err) {
           console.error("Logout execution error:", err);

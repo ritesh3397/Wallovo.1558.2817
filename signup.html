@@ -199,47 +199,19 @@
           Processing Secure Route...
         `;
 
-        // Mock mode handler if Supabase not configured
+        // Check if Supabase is connected
         if (!supabaseClient) {
-          setTimeout(() => {
-            let mockAccounts = JSON.parse(localStorage.getItem('wallovo_mock_accounts') || '[]');
-            const emailExists = mockAccounts.some(acc => acc.email.toLowerCase() === email.toLowerCase());
-            if (emailExists) {
-              showError("Account already exists. Please login.");
-              submitBtn.disabled = false;
-              submitBtn.textContent = "Create Account";
-              return;
-            }
-
-            // Create new mock account
-            const newAcc = {
-              email: email,
-              password: password,
-              fullName: fullName,
-              createdAt: new Date().toISOString()
-            };
-            mockAccounts.push(newAcc);
-            localStorage.setItem('wallovo_mock_accounts', JSON.stringify(mockAccounts));
-
-            showSuccess("Account simulated! Welcome to the loop. Redirecting...");
-            localStorage.setItem('mock_auth_user', JSON.stringify({
-              email: email,
-              user_metadata: { full_name: fullName },
-              created_at: newAcc.createdAt
-            }));
-
-            // Dispatch event to keep other tabs/windows in sync
-            window.dispatchEvent(new Event('storage'));
-
-            setTimeout(() => {
-              window.location.href = '/dashboard.html';
-            }, 1200);
-          }, 1000);
+          console.error("Supabase connection: inactive or unconfigured.");
+          showError("Wallovo Database is unindexed: Pls configure VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in settings.");
+          submitBtn.disabled = false;
+          submitBtn.textContent = "Create Account";
           return;
         }
 
+        console.log("Supabase connection: active. Ready to route client signup.");
+
         try {
-          const { data, error } = await supabaseClient.auth.signUp({
+          const signUpPayload = {
             email: email,
             password: password,
             options: {
@@ -247,9 +219,13 @@
                 full_name: fullName,
               }
             }
-          });
+          };
+          console.log("Submitting signup payload to Supabase:", { email, fullName });
+          
+          const { data, error } = await supabaseClient.auth.signUp(signUpPayload);
 
           if (error) {
+            console.error("Supabase signup error:", error);
             if (error.message.toLowerCase().includes("exists") || error.code === "user_already_exists" || error.status === 400) {
               showError("Account already exists. Please login.");
             } else if (error.message.toLowerCase().includes("weak")) {
@@ -262,30 +238,46 @@
             return;
           }
 
+          console.log("Supabase signup response:", data);
+
           if (data && data.user) {
             // Check identities to prevent stealth duplicates under email_confirm configuration
             if (data.user.identities && data.user.identities.length === 0) {
+              console.log("Account already exists (detected via empty identities array).");
               showError("Account already exists. Please login.");
               submitBtn.disabled = false;
               submitBtn.textContent = "Create Account";
               return;
             }
 
-            // Check if user authenticated immediately
-            if (data.session) {
+            console.log("Authenticating current account session dynamically...");
+            // Automatically sign user in with password to confirm direct login session
+            const { data: signData, error: signError } = await supabaseClient.auth.signInWithPassword({
+              email: email,
+              password: password
+            });
+
+            if (signError) {
+              console.warn("Auto-login error after signup (possible email verification setting):", signError);
+              showSuccess("Account created! Verify your email or log in with your credentials.");
+              form.reset();
+              submitBtn.disabled = false;
+              submitBtn.textContent = "Create Account";
+            } else if (signData && signData.session) {
+              console.log("Auto-login session secured:", signData.session);
               showSuccess("Account verified! Forwarding to executive dashboard...");
               setTimeout(() => {
                 window.location.href = '/dashboard.html';
               }, 1200);
             } else {
-              // Sign-up succeeded but confirmation is required or enabled
-              showSuccess("Account created successfully! Please verify your email or sign in to confirm!");
-              form.reset();
-              submitBtn.disabled = false;
-              submitBtn.textContent = "Create Account";
+              showSuccess("Account created successfully! Forwarding to executive dashboard...");
+              setTimeout(() => {
+                window.location.href = '/dashboard.html';
+              }, 1200);
             }
           }
         } catch (err) {
+          console.error("Signup process exception triggered:", err);
           showError(err.message || "An authentication server exception triggered. Please retry.");
           submitBtn.disabled = false;
           submitBtn.textContent = "Create Account";

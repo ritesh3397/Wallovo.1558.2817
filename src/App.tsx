@@ -21,6 +21,12 @@ export default function App() {
   const [activeView, setActiveView] = useState<'marketing' | 'dashboard'>('marketing');
   const [user, setUser] = useState<{ email: string; fullName: string } | null>(() => {
     try {
+      // Prioritize real user session cached locally to avoid navbar flicker
+      const realCached = localStorage.getItem('wallovo_user_session');
+      if (realCached) {
+        return JSON.parse(realCached);
+      }
+      
       const mockUserStr = localStorage.getItem('mock_auth_user');
       if (mockUserStr) {
         const mockUser = JSON.parse(mockUserStr);
@@ -67,27 +73,33 @@ export default function App() {
   // Load session from Supabase on start or fall back to localStorage
   useEffect(() => {
     if (isSupabaseConfigured()) {
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        if (session && session.user) {
+      supabase.auth.getSession().then(({ data: { session }, error }) => {
+        if (!error && session && session.user) {
           const u = session.user;
-          setUser({
+          const profileUser = {
             email: u.email || '',
             fullName: u.user_metadata?.full_name || u.email?.split('@')[0] || 'User'
-          });
+          };
+          setUser(profileUser);
+          localStorage.setItem('wallovo_user_session', JSON.stringify(profileUser));
         } else {
           setUser(null);
+          localStorage.removeItem('wallovo_user_session');
         }
       });
 
       const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
         if (session && session.user) {
           const u = session.user;
-          setUser({
+          const profileUser = {
             email: u.email || '',
             fullName: u.user_metadata?.full_name || u.email?.split('@')[0] || 'User'
-          });
+          };
+          setUser(profileUser);
+          localStorage.setItem('wallovo_user_session', JSON.stringify(profileUser));
         } else {
           setUser(null);
+          localStorage.removeItem('wallovo_user_session');
         }
       });
 
@@ -124,11 +136,16 @@ export default function App() {
   }, [activeView, user]);
 
   const handleLogout = async () => {
+    console.log("Executing sign out protocol...");
     if (isSupabaseConfigured()) {
-      await supabase.auth.signOut();
-    } else {
-      localStorage.removeItem('mock_auth_user');
+      try {
+        await supabase.auth.signOut();
+      } catch (e) {
+        console.error("Supabase signOut error:", e);
+      }
     }
+    localStorage.removeItem('wallovo_user_session');
+    localStorage.removeItem('mock_auth_user');
     setUser(null);
     triggerNotification('Handshake disconnected. Active session cleared.', 'info');
     setActiveView('marketing');
