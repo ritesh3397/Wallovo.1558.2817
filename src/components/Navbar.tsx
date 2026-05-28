@@ -53,7 +53,10 @@ export default function Navbar({ activeView, setActiveView, onSubmitReviewClick,
           {/* Navigation Toggle Option Capsule */}
           <div className="bg-black/40 border border-white/5 rounded-full p-1 flex items-center relative">
             <button
-              onClick={() => setActiveView('marketing')}
+              onClick={() => {
+                setActiveView('marketing');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }}
               className={`relative px-4 py-1.5 text-xs font-medium rounded-full transition-all duration-500 cursor-pointer ${
                 activeView === 'marketing'
                   ? 'text-black font-semibold'
@@ -63,10 +66,16 @@ export default function Navbar({ activeView, setActiveView, onSubmitReviewClick,
               {activeView === 'marketing' && (
                 <div className="absolute inset-0 bg-[#FFB6C9] rounded-full shadow-[0_0_15px_rgba(255,182,201,0.5)] -z-10" />
               )}
-              Wall of Love
+              Home
             </button>
             <button
-              onClick={() => setActiveView('dashboard')}
+              onClick={() => {
+                if (user) {
+                  window.location.href = '/dashboard.html';
+                } else {
+                  window.location.href = '/login.html';
+                }
+              }}
               className={`relative px-4 py-1.5 text-xs font-medium rounded-full transition-all duration-500 cursor-pointer ${
                 activeView === 'dashboard'
                   ? 'text-black font-semibold'
@@ -76,7 +85,7 @@ export default function Navbar({ activeView, setActiveView, onSubmitReviewClick,
               {activeView === 'dashboard' && (
                 <div className="absolute inset-0 bg-[#FFB6C9] rounded-full shadow-[0_0_15px_rgba(255,182,201,0.5)] -z-10" />
               )}
-              AI Dashboard
+              Dashboard
             </button>
           </div>
 
@@ -98,80 +107,91 @@ export default function Navbar({ activeView, setActiveView, onSubmitReviewClick,
                 </a>
               </>
             ) : (
-              <div className="relative" ref={dropdownRef}>
+              <div className="flex items-center gap-2.5">
+                <a
+                  href="/profile.html"
+                  className="hidden md:inline-flex text-[10.5px] text-zinc-300 hover:text-[#FFB6C9] font-mono tracking-wider font-semibold transition-colors px-1 py-1"
+                >
+                  Profile
+                </a>
                 <button
                   type="button"
-                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                  className="flex items-center gap-2 bg-[#0D0D0D]/65 hover:bg-[#FFB6C9]/15 text-white/90 hover:text-[#FFB6C9] text-xs px-3 py-1.5 rounded-full border border-white/5 hover:border-[#FFB6C9]/35 transition-all duration-300 cursor-pointer outline-none select-none relative group"
-                  title="Operator Session"
+                  onClick={onLogout}
+                  className="hidden md:inline-flex text-[10.5px] text-rose-400 bg-rose-500/10 border border-rose-500/20 hover:bg-rose-500/20 hover:border-rose-500/40 px-3 py-1 rounded-full transition-all duration-300 font-mono tracking-wider font-semibold cursor-pointer"
                 >
-                  <div className="relative">
-                    <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-[#FFB6C9] to-[#F472B6] flex items-center justify-center text-[10px] font-bold text-black uppercase shrink-0">
-                      {user.fullName ? user.fullName.substring(0, 1).toUpperCase() : 'U'}
-                    </div>
-                    {/* Pulsing Active Online Glow Dot */}
-                    <div className="absolute -bottom-0.5 -right-0.5 w-2 h-2 bg-emerald-400 rounded-full border border-[#0D0D0D] shadow-[0_0_8px_#34D399]">
-                      <span className="animate-ping absolute inset-0 rounded-full bg-emerald-400 opacity-75"></span>
-                    </div>
-                  </div>
-                  <span className="max-w-[90px] truncate hidden sm:inline text-zinc-300 font-mono text-[10.5px] tracking-wider font-semibold group-hover:text-[#FFB6C9] transition-colors">{user.fullName || 'Operator'}</span>
-                  <ChevronDown className={`w-3.5 h-3.5 text-white/40 group-hover:text-[#FFB6C9] transition-transform duration-300 ${isDropdownOpen ? 'rotate-180 text-[#FFB6C9]' : ''}`} />
+                  Logout
                 </button>
+                <div className="relative" ref={dropdownRef}>
+                  <button
+                    type="button"
+                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                    className="flex items-center gap-2 bg-[#0D0D0D]/65 hover:bg-[#FFB6C9]/15 text-white/90 hover:text-[#FFB6C9] text-xs px-3 py-1.5 rounded-full border border-white/5 hover:border-[#FFB6C9]/35 transition-all duration-300 cursor-pointer outline-none select-none relative group"
+                    title="User Session"
+                  >
+                    <div className="relative">
+                      <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-[#FFB6C9] to-[#F472B6] flex items-center justify-center text-[10px] font-bold text-black uppercase shrink-0">
+                        {user.fullName ? user.fullName.substring(0, 1).toUpperCase() : 'U'}
+                      </div>
+                      {/* Pulsing Active Online Glow Dot */}
+                      <div className="absolute -bottom-0.5 -right-0.5 w-2 h-2 bg-emerald-400 rounded-full border border-[#0D0D0D] shadow-[0_0_8px_#34D399]">
+                        <span className="animate-ping absolute inset-0 rounded-full bg-emerald-400 opacity-75"></span>
+                      </div>
+                    </div>
+                    <span className="max-w-[90px] truncate hidden sm:inline text-zinc-300 font-mono text-[10.5px] tracking-wider font-semibold group-hover:text-[#FFB6C9] transition-colors">{user.fullName || 'Operator'}</span>
+                    <ChevronDown className={`w-3.5 h-3.5 text-white/40 group-hover:text-[#FFB6C9] transition-transform duration-300 ${isDropdownOpen ? 'rotate-180 text-[#FFB6C9]' : ''}`} />
+                  </button>
 
-                {/* Dropdown Menu Container */}
-                {isDropdownOpen && (
-                  <div className="absolute right-0 top-11 mt-2 w-56 wallovo-glass rounded-2xl bg-[#0D0D0D]/95 border border-white/5 py-2 shadow-[0_15px_40px_rgba(0,0,0,0.85),0_0_30px_rgba(255,182,201,0.06)] overflow-hidden z-50 divide-y divide-white/5 animate-in fade-in slide-in-from-top-2 duration-300">
-                    <div className="px-4 py-3 bg-white/[0.01]">
-                      <span className="inline-flex items-center gap-1 text-[8.5px] font-mono uppercase tracking-widest text-[#FFB6C9] bg-pink-500/10 px-2 py-0.5 rounded border border-pink-500/20">
-                        SLA Online
-                      </span>
-                      <p className="text-xs font-bold text-white truncate mt-2 font-display">{user.fullName || 'User'}</p>
-                      <p className="text-[10px] text-white/40 truncate font-mono mt-0.5">{user.email}</p>
-                    </div>
-                    
-                    <div className="py-1.5">
-                      <a
-                        href="/profile.html"
-                        className="flex items-center gap-2.5 px-4 py-2 text-xs text-zinc-300 hover:text-[#FFB6C9] hover:bg-white/[0.02] transition-colors font-sans group/drill"
-                      >
-                        <Shield className="w-3.5 h-3.5 text-white/40 group-hover/drill:text-[#FFB6C9] transition-colors" />
-                        <span>My Profile</span>
-                      </a>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setActiveView('dashboard');
-                          setIsDropdownOpen(false);
-                        }}
-                        className="w-full text-left flex items-center gap-2.5 px-4 py-2 text-xs text-zinc-300 hover:text-[#FFB6C9] hover:bg-white/[0.02] transition-colors font-sans group/drill cursor-pointer"
-                      >
-                        <Layout className="w-3.5 h-3.5 text-white/40 group-hover/drill:text-[#FFB6C9] transition-colors" />
-                        <span>Dashboard</span>
-                      </button>
-                      <a
-                        href="/profile.html"
-                        className="flex items-center gap-2.5 px-4 py-2 text-xs text-zinc-300 hover:text-[#FFB6C9] hover:bg-white/[0.02] transition-colors font-sans group/drill"
-                      >
-                        <Settings className="w-3.5 h-3.5 text-white/40 group-hover/drill:text-[#FFB6C9] transition-colors" />
-                        <span>Settings</span>
-                      </a>
-                    </div>
+                  {/* Dropdown Menu Container */}
+                  {isDropdownOpen && (
+                    <div className="absolute right-0 top-11 mt-2 w-56 wallovo-glass rounded-2xl bg-[#0D0D0D]/95 border border-white/5 py-2 shadow-[0_15px_40px_rgba(0,0,0,0.85),0_0_30px_rgba(255,182,201,0.06)] overflow-hidden z-50 divide-y divide-white/5 animate-in fade-in slide-in-from-top-2 duration-300">
+                      <div className="px-4 py-3 bg-white/[0.01]">
+                        <span className="inline-flex items-center gap-1 text-[8.5px] font-mono uppercase tracking-widest text-[#FFB6C9] bg-pink-500/10 px-2 py-0.5 rounded border border-pink-500/20">
+                          SLA Online
+                        </span>
+                        <p className="text-xs font-bold text-white truncate mt-2 font-display">{user.fullName || 'User'}</p>
+                        <p className="text-[10px] text-white/40 truncate font-mono mt-0.5">{user.email}</p>
+                      </div>
+                      
+                      <div className="py-1.5">
+                        <a
+                          href="/profile.html"
+                          className="flex items-center gap-2.5 px-4 py-2 text-xs text-zinc-300 hover:text-[#FFB6C9] hover:bg-white/[0.02] transition-colors font-sans group/drill"
+                        >
+                          <Shield className="w-3.5 h-3.5 text-white/40 group-hover/drill:text-[#FFB6C9] transition-colors" />
+                          <span>My Profile</span>
+                        </a>
+                        <a
+                          href="/dashboard.html"
+                          className="flex items-center gap-2.5 px-4 py-2 text-xs text-zinc-300 hover:text-[#FFB6C9] hover:bg-white/[0.02] transition-colors font-sans group/drill cursor-pointer"
+                        >
+                          <Layout className="w-3.5 h-3.5 text-white/40 group-hover/drill:text-[#FFB6C9] transition-colors" />
+                          <span>Dashboard</span>
+                        </a>
+                        <a
+                          href="/profile.html"
+                          className="flex items-center gap-2.5 px-4 py-2 text-xs text-zinc-300 hover:text-[#FFB6C9] hover:bg-white/[0.02] transition-colors font-sans group/drill"
+                        >
+                          <Settings className="w-3.5 h-3.5 text-white/40 group-hover/drill:text-[#FFB6C9] transition-colors" />
+                          <span>Settings</span>
+                        </a>
+                      </div>
 
-                    <div className="py-1">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setIsDropdownOpen(false);
-                          onLogout();
-                        }}
-                        className="w-full text-left flex items-center gap-2.5 px-4 py-2.5 text-xs text-rose-400 hover:text-rose-300 hover:bg-rose-500/5 transition-colors font-sans cursor-pointer font-medium group/drill"
-                      >
-                        <LogOut className="w-3.5 h-3.5 text-rose-400/70 group-hover/drill:text-rose-300 transition-colors" />
-                        <span>Logout</span>
-                      </button>
+                      <div className="py-1">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsDropdownOpen(false);
+                            onLogout();
+                          }}
+                          className="w-full text-left flex items-center gap-2.5 px-4 py-2.5 text-xs text-rose-400 hover:text-rose-300 hover:bg-rose-500/5 transition-colors font-sans cursor-pointer font-medium group/drill"
+                        >
+                          <LogOut className="w-3.5 h-3.5 text-rose-400/70 group-hover/drill:text-rose-300 transition-colors" />
+                          <span>Logout</span>
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             )}
 

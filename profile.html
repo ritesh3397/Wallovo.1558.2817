@@ -71,7 +71,7 @@
             id="logout-btn"
             class="bg-white/5 hover:bg-rose-500/10 border border-white/10 hover:border-rose-500/25 text-white/80 hover:text-rose-400 text-xs font-semibold px-5 py-2 rounded-full transition-all duration-300 flex items-center gap-2 cursor-pointer font-display uppercase tracking-widest"
           >
-            Disconnect
+            Logout
           </button>
         </div>
       </div>
@@ -432,17 +432,17 @@
       logoutBtn.addEventListener('click', async () => {
         if (!supabaseClient) {
           localStorage.removeItem('mock_auth_user');
-          window.location.href = '/login.html';
+          window.location.href = '/index.html';
           return;
         }
 
         try {
           const { error } = await supabaseClient.auth.signOut();
           if (error) throw error;
-          window.location.href = '/login.html';
+          window.location.href = '/index.html';
         } catch (err) {
           console.error("Logout execution error:", err);
-          window.location.href = '/login.html'; // Fallback redirect anyway
+          window.location.href = '/index.html'; // Fallback redirect anyway
         }
       });
 
