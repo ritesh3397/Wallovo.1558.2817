@@ -8,8 +8,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
     <!-- Dynamic Tailwind CSS & System Styling -->
     <link rel="stylesheet" href="/src/index.css" />
-    <!-- Supabase CDN Client -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   </head>
   <body class="min-h-screen text-slate-300 flex flex-col justify-between selection:bg-[#FFB6C9] selection:text-black relative overflow-x-hidden bg-[#050505]">
     
@@ -121,29 +119,23 @@
     </footer>
 
     <!-- LOGIC INTEGRATION script -->
-    <script>
-      // Load environment config gracefully
-      window.ENV = window.ENV || {};
-      window.ENV.SUPABASE_URL = window.ENV.SUPABASE_URL || "process.env.NEXT_PUBLIC_SUPABASE_URL" || "";
-      window.ENV.SUPABASE_ANON_KEY = window.ENV.SUPABASE_ANON_KEY || "process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY" || "";
+    <script type="module">
+      import { supabase, clearSessionAndSignOut } from '/src/lib/supabase.js';
 
-      // Quick fallback validation
-      const hasConfig = window.ENV.SUPABASE_URL && window.ENV.SUPABASE_ANON_KEY && 
-                        !window.ENV.SUPABASE_URL.includes("process.env");
-
-      let supabaseClient = null;
-      if (hasConfig) {
-        supabaseClient = supabase.createClient(window.ENV.SUPABASE_URL, window.ENV.SUPABASE_ANON_KEY);
-      } else {
-        console.warn("Supabase credentials missing on current frame runtime. Fallback mock simulator initialized.");
-      }
+      console.log("VITE_SUPABASE_URL:", import.meta.env.VITE_SUPABASE_URL);
+      console.log("VITE_SUPABASE_ANON_KEY:", import.meta.env.VITE_SUPABASE_ANON_KEY);
 
       // Check existing session on load
       async function autoRedirect() {
-        if (!supabaseClient) return;
-        const { data: { session } } = await supabaseClient.auth.getSession();
-        if (session) {
-          window.location.href = '/dashboard.html';
+        console.log("[Auth] Checking cached session on signup load...");
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
+          if (session) {
+            console.log("[Auth] Active session found. Redirecting to dashboard...");
+            window.location.href = '/dashboard.html';
+          }
+        } catch (err) {
+          console.error("[Auth] Session check failed on load", err);
         }
       }
       autoRedirect();
@@ -191,24 +183,9 @@
 
         // Set loading stats
         submitBtn.disabled = true;
-        submitBtn.innerHTML = `
-          <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-          </svg>
-          Processing Secure Route...
-        `;
+        submitBtn.textContent = "Creating Account...";
 
-        // Check if Supabase is connected
-        if (!supabaseClient) {
-          console.error("Supabase connection: inactive or unconfigured.");
-          showError("Wallovo Database is unindexed: Pls configure VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in settings.");
-          submitBtn.disabled = false;
-          submitBtn.textContent = "Create Account";
-          return;
-        }
-
-        console.log("Supabase connection: active. Ready to route client signup.");
+        console.log("[Auth] signup start:", email);
 
         try {
           const signUpPayload = {
@@ -220,65 +197,34 @@
               }
             }
           };
-          console.log("Submitting signup payload to Supabase:", { email, fullName });
-          
-          const { data, error } = await supabaseClient.auth.signUp(signUpPayload);
+
+          const { data, error } = await supabase.auth.signUp(signUpPayload);
 
           if (error) {
-            console.error("Supabase signup error:", error);
-            if (error.message.toLowerCase().includes("exists") || error.code === "user_already_exists" || error.status === 400) {
-              showError("Account already exists. Please login.");
-            } else if (error.message.toLowerCase().includes("weak")) {
-              showError("Weak password — must be at least 6 characters.");
-            } else {
-              showError(error.message);
-            }
+            console.error("[Auth] signup fail:", error);
+            showError("Signup Failed: " + error.message);
             submitBtn.disabled = false;
             submitBtn.textContent = "Create Account";
             return;
           }
 
-          console.log("Supabase signup response:", data);
-
           if (data && data.user) {
-            // Check identities to prevent stealth duplicates under email_confirm configuration
-            if (data.user.identities && data.user.identities.length === 0) {
-              console.log("Account already exists (detected via empty identities array).");
-              showError("Account already exists. Please login.");
-              submitBtn.disabled = false;
-              submitBtn.textContent = "Create Account";
-              return;
-            }
-
-            console.log("Authenticating current account session dynamically...");
-            // Automatically sign user in with password to confirm direct login session
-            const { data: signData, error: signError } = await supabaseClient.auth.signInWithPassword({
-              email: email,
-              password: password
-            });
-
-            if (signError) {
-              console.warn("Auto-login error after signup (possible email verification setting):", signError);
-              showSuccess("Account created! Verify your email or log in with your credentials.");
-              form.reset();
-              submitBtn.disabled = false;
-              submitBtn.textContent = "Create Account";
-            } else if (signData && signData.session) {
-              console.log("Auto-login session secured:", signData.session);
-              showSuccess("Account verified! Forwarding to executive dashboard...");
-              setTimeout(() => {
-                window.location.href = '/dashboard.html';
-              }, 1200);
-            } else {
-              showSuccess("Account created successfully! Forwarding to executive dashboard...");
-              setTimeout(() => {
-                window.location.href = '/dashboard.html';
-              }, 1200);
-            }
+            console.log("[Auth] signup success:", data.user);
+            showSuccess("Account created successfully! Forwarding to executive login...");
+            
+            // Redirect to login page to sign in cleanly as requested
+            setTimeout(() => {
+              window.location.href = '/login.html';
+            }, 1000);
+          } else {
+            console.warn("[Auth] signup returned empty payload");
+            showError("Signup returned empty payload. Please try again.");
+            submitBtn.disabled = false;
+            submitBtn.textContent = "Create Account";
           }
         } catch (err) {
-          console.error("Signup process exception triggered:", err);
-          showError(err.message || "An authentication server exception triggered. Please retry.");
+          console.error("[Auth] signup process exception:", err);
+          showError(err.message || "An authentication server exception occurred. Please retry.");
           submitBtn.disabled = false;
           submitBtn.textContent = "Create Account";
         }

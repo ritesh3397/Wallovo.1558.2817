@@ -8,8 +8,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
     <!-- Dynamic Tailwind CSS & System Styling -->
     <link rel="stylesheet" href="/src/index.css" />
-    <!-- Supabase CDN Client -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
       /* Custom grid lines overlay */
       .subsurface-grid {
@@ -227,22 +225,14 @@
     </footer>
 
     <!-- LOGIC INTEGRATION script -->
-    <script>
-      // Load environment config gracefully
-      window.ENV = window.ENV || {};
-      window.ENV.SUPABASE_URL = window.ENV.SUPABASE_URL || "process.env.NEXT_PUBLIC_SUPABASE_URL" || "";
-      window.ENV.SUPABASE_ANON_KEY = window.ENV.SUPABASE_ANON_KEY || "process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY" || "";
+    <script type="module">
+      import { supabase, clearSessionAndSignOut } from '/src/lib/supabase.js';
 
-      // Quick fallback validation
-      const hasConfig = window.ENV.SUPABASE_URL && window.ENV.SUPABASE_ANON_KEY && 
-                        !window.ENV.SUPABASE_URL.includes("process.env");
+      console.log("VITE_SUPABASE_URL (from dashboard):", import.meta.env.VITE_SUPABASE_URL);
+      console.log("VITE_SUPABASE_ANON_KEY (from dashboard):", import.meta.env.VITE_SUPABASE_ANON_KEY);
 
-      let supabaseClient = null;
-      if (hasConfig) {
-        supabaseClient = supabase.createClient(window.ENV.SUPABASE_URL, window.ENV.SUPABASE_ANON_KEY);
-        console.log("Supabase connection: active in dashboard.");
-      } else {
-        console.error("Supabase connection: inactive or unconfigured in dashboard.");
+      if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
+        console.error("Developer notice: Supabase URL or Anon Key is undefined. Please verify environment variable configuration.");
       }
 
       const sessionPill = document.getElementById('session-pill');
@@ -262,19 +252,9 @@
 
       // Check auth session
       async function checkSession() {
-        if (!supabaseClient) {
-          console.error("Dashboard loaded without Supabase keys.");
-          welcomeTitle.innerHTML = `Welcome to <span class="text-[#FFB6C9] font-display">Console</span>`;
-          triggerNotification("Notice: Define VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to unlock authentication.");
-          setTimeout(() => {
-            window.location.href = '/login.html';
-          }, 3000);
-          return;
-        }
-
         try {
           console.log("Fetching active session state...");
-          const { data: { session }, error } = await supabaseClient.auth.getSession();
+          const { data: { session }, error } = await supabase.auth.getSession();
           console.log("Session response:", { session, error });
           
           if (error || !session) {
@@ -304,22 +284,10 @@
 
       // Logout handler
       logoutBtn.addEventListener('click', async () => {
-        if (!supabaseClient) {
-          console.warn("Destroying unconfigured mock session details.");
-          localStorage.removeItem('mock_auth_user');
-          window.location.href = '/index.html';
-          return;
-        }
-
         try {
           console.log("Signing out active session...");
-          const { error } = await supabaseClient.auth.signOut();
-          if (error) {
-            console.error("SignOut error response:", error);
-            throw error;
-          }
+          await clearSessionAndSignOut();
           console.log("Logged out successfully.");
-          localStorage.removeItem('mock_auth_user');
           window.location.href = '/index.html';
         } catch (err) {
           console.error("Logout execution error:", err);
@@ -327,8 +295,8 @@
         }
       });
 
-      // Execute validation check immediately on DOM content load
-      document.addEventListener('DOMContentLoaded', checkSession);
+      // Execute validation check immediately because modules execute after HTML is fully parsed
+      checkSession();
     </script>
   </body>
 </html>

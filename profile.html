@@ -8,8 +8,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
     <!-- Dynamic Tailwind CSS & System Styling -->
     <link rel="stylesheet" href="/src/index.css" />
-    <!-- Supabase CDN Client -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
       /* Custom grid lines overlay */
       .subsurface-grid {
@@ -229,21 +227,14 @@
     </footer>
 
     <!-- LOGIC INTEGRATION script -->
-    <script>
-      // Load environment config gracefully
-      window.ENV = window.ENV || {};
-      window.ENV.SUPABASE_URL = window.ENV.SUPABASE_URL || "process.env.NEXT_PUBLIC_SUPABASE_URL" || "";
-      window.ENV.SUPABASE_ANON_KEY = window.ENV.SUPABASE_ANON_KEY || "process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY" || "";
+    <script type="module">
+      import { supabase, clearSessionAndSignOut } from '/src/lib/supabase.js';
 
-      // Quick fallback validation
-      const hasConfig = window.ENV.SUPABASE_URL && window.ENV.SUPABASE_ANON_KEY && 
-                        !window.ENV.SUPABASE_URL.includes("process.env");
+      console.log("VITE_SUPABASE_URL (from profile):", import.meta.env.VITE_SUPABASE_URL);
+      console.log("VITE_SUPABASE_ANON_KEY (from profile):", import.meta.env.VITE_SUPABASE_ANON_KEY);
 
-      let supabaseClient = null;
-      if (hasConfig) {
-        supabaseClient = supabase.createClient(window.ENV.SUPABASE_URL, window.ENV.SUPABASE_ANON_KEY);
-      } else {
-        console.warn("Supabase credentials missing on current frame runtime. Fallback mock simulator initialized.");
+      if (!import.meta.env.VITE_SUPABASE_URL || !import.meta.env.VITE_SUPABASE_ANON_KEY) {
+        console.error("Developer notice: Supabase URL or Anon Key is undefined. Please verify environment variable configuration.");
       }
 
       const sessionPill = document.getElementById('session-pill');
@@ -291,18 +282,9 @@
 
       // Check auth session & populate profile info
       async function checkSession() {
-        if (!supabaseClient) {
-          console.error("Profile loaded without active database credentials.");
-          triggerNotification("Notice: Define VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to unlock profile customization.");
-          setTimeout(() => {
-            window.location.href = '/login.html';
-          }, 3000);
-          return;
-        }
-
         try {
           console.log("Profile session: requesting credential token...");
-          const { data: { session }, error } = await supabaseClient.auth.getSession();
+          const { data: { session }, error } = await supabase.auth.getSession();
           console.log("Profile session response:", { session, error });
           
           if (error || !session) {
@@ -374,17 +356,9 @@
         saveBtn.disabled = true;
         saveBtn.textContent = "Saving Credentials...";
 
-        if (!supabaseClient) {
-          console.error("Database connection: inactive.");
-          showError("Supabase connection is inactive.");
-          saveBtn.disabled = false;
-          saveBtn.textContent = "Save Developer Profile";
-          return;
-        }
-
         try {
           console.log("Submitting updated full_name metadata to Supabase auth:", updatedName);
-          const { data, error } = await supabaseClient.auth.updateUser({
+          const { data, error } = await supabase.auth.updateUser({
             data: {
               full_name: updatedName
             }
@@ -421,21 +395,10 @@
 
       // Logout handler
       logoutBtn.addEventListener('click', async () => {
-        if (!supabaseClient) {
-          localStorage.removeItem('mock_auth_user');
-          window.location.href = '/index.html';
-          return;
-        }
-
         try {
           console.log("Signing out active profile session...");
-          const { error } = await supabaseClient.auth.signOut();
-          if (error) {
-            console.error("SignOut error:", error);
-            throw error;
-          }
+          await clearSessionAndSignOut();
           console.log("SignOut success.");
-          localStorage.removeItem('mock_auth_user');
           window.location.href = '/index.html';
         } catch (err) {
           console.error("Logout execution error:", err);
@@ -443,8 +406,8 @@
         }
       });
 
-      // Execute on DOM load
-      document.addEventListener('DOMContentLoaded', checkSession);
+      // Execute validation check immediately on modules loading (DOM parsed)
+      checkSession();
     </script>
   </body>
 </html>

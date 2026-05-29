@@ -4,7 +4,7 @@ import {
 } from 'lucide-react';
 import { Testimonial } from './types';
 import { INITIAL_TESTIMONIALS } from './data';
-import { supabase, isSupabaseConfigured } from './lib/supabase';
+import { supabase, isSupabaseConfigured, clearSessionAndSignOut } from './lib/supabase';
 
 // Component imports
 import Navbar from './components/Navbar';
@@ -70,62 +70,46 @@ export default function App() {
     }
   }, [notification]);
 
-  // Load session from Supabase on start or fall back to localStorage
+  // Load session from Supabase on start and register a single global listener
   useEffect(() => {
-    if (isSupabaseConfigured()) {
-      supabase.auth.getSession().then(({ data: { session }, error }) => {
-        if (!error && session && session.user) {
-          const u = session.user;
-          const profileUser = {
-            email: u.email || '',
-            fullName: u.user_metadata?.full_name || u.email?.split('@')[0] || 'User'
-          };
-          setUser(profileUser);
-          localStorage.setItem('wallovo_user_session', JSON.stringify(profileUser));
-        } else {
-          setUser(null);
-          localStorage.removeItem('wallovo_user_session');
-        }
-      });
+    console.log("[Auth] App load session restore initiated...");
+    
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (!error && session && session.user) {
+        const u = session.user;
+        const profileUser = {
+          email: u.email || '',
+          fullName: u.user_metadata?.full_name || u.email?.split('@')[0] || 'User'
+        };
+        console.log("[Auth] session restore success:", profileUser.email);
+        setUser(profileUser);
+        localStorage.setItem('wallovo_user_session', JSON.stringify(profileUser));
+      } else {
+        console.log("[Auth] session restore: no active session found");
+        setUser(null);
+        localStorage.removeItem('wallovo_user_session');
+      }
+    });
 
-      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-        if (session && session.user) {
-          const u = session.user;
-          const profileUser = {
-            email: u.email || '',
-            fullName: u.user_metadata?.full_name || u.email?.split('@')[0] || 'User'
-          };
-          setUser(profileUser);
-          localStorage.setItem('wallovo_user_session', JSON.stringify(profileUser));
-        } else {
-          setUser(null);
-          localStorage.removeItem('wallovo_user_session');
-        }
-      });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      console.log("[Auth] onAuthStateChange global event:", _event);
+      if (session && session.user) {
+        const u = session.user;
+        const profileUser = {
+          email: u.email || '',
+          fullName: u.user_metadata?.full_name || u.email?.split('@')[0] || 'User'
+        };
+        setUser(profileUser);
+        localStorage.setItem('wallovo_user_session', JSON.stringify(profileUser));
+      } else {
+        setUser(null);
+        localStorage.removeItem('wallovo_user_session');
+      }
+    });
 
-      return () => {
-        subscription.unsubscribe();
-      };
-    } else {
-      const checkMockUser = () => {
-        const mockUserStr = localStorage.getItem('mock_auth_user');
-        if (mockUserStr) {
-          const mockUser = JSON.parse(mockUserStr);
-          setUser({
-            email: mockUser.email,
-            fullName: mockUser.user_metadata?.full_name || mockUser.email.split('@')[0] || 'User'
-          });
-        } else {
-          setUser(null);
-        }
-      };
-
-      checkMockUser();
-      window.addEventListener('storage', checkMockUser);
-      return () => {
-        window.removeEventListener('storage', checkMockUser);
-      };
-    }
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   // Redirect to login page if unauthenticated when attempting to view dashboard mode
@@ -137,15 +121,7 @@ export default function App() {
 
   const handleLogout = async () => {
     console.log("Executing sign out protocol...");
-    if (isSupabaseConfigured()) {
-      try {
-        await supabase.auth.signOut();
-      } catch (e) {
-        console.error("Supabase signOut error:", e);
-      }
-    }
-    localStorage.removeItem('wallovo_user_session');
-    localStorage.removeItem('mock_auth_user');
+    await clearSessionAndSignOut();
     setUser(null);
     triggerNotification('Handshake disconnected. Active session cleared.', 'info');
     setActiveView('marketing');

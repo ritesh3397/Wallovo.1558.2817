@@ -30,7 +30,7 @@ export default function WaitlistHub() {
       }
 
       // 1. Check if email already exists
-      const { data: existing, error: checkError } = await supabase
+      const { data: existing, error: checkError } = await (supabase as any)
         .from('waitlist')
         .select('id, email')
         .eq('email', email.trim().toLowerCase())
@@ -47,7 +47,7 @@ export default function WaitlistHub() {
       }
 
       // 2. Insert new record
-      const { error: insertError } = await supabase
+      const { error: insertError } = await (supabase as any)
         .from('waitlist')
         .insert([
           {
