@@ -19,21 +19,14 @@ import SubmitReviewModal from './components/SubmitReviewModal';
 
 export default function App() {
   const [activeView, setActiveView] = useState<'marketing' | 'dashboard'>('marketing');
+  const [session, setSession] = useState<any>(null);
+  const [authReady, setAuthReady] = useState(false);
   const [user, setUser] = useState<{ email: string; fullName: string } | null>(() => {
     try {
       // Prioritize real user session cached locally to avoid navbar flicker
       const realCached = localStorage.getItem('wallovo_user_session');
       if (realCached) {
         return JSON.parse(realCached);
-      }
-      
-      const mockUserStr = localStorage.getItem('mock_auth_user');
-      if (mockUserStr) {
-        const mockUser = JSON.parse(mockUserStr);
-        return {
-          email: mockUser.email,
-          fullName: mockUser.user_metadata?.full_name || mockUser.email.split('@')[0] || 'User'
-        };
       }
     } catch (e) {
       console.error("Failed to parse instant user session:", e);
@@ -72,27 +65,40 @@ export default function App() {
 
   // Load session from Supabase on start and register a single global listener
   useEffect(() => {
-    console.log("[Auth] App load session restore initiated...");
+    console.log("[Auth] App load session restore initiated. Current authReady state:", authReady);
     
-    supabase.auth.getSession().then(({ data: { session }, error }) => {
-      if (!error && session && session.user) {
-        const u = session.user;
-        const profileUser = {
-          email: u.email || '',
-          fullName: u.user_metadata?.full_name || u.email?.split('@')[0] || 'User'
-        };
-        console.log("[Auth] session restore success:", profileUser.email);
-        setUser(profileUser);
-        localStorage.setItem('wallovo_user_session', JSON.stringify(profileUser));
-      } else {
-        console.log("[Auth] session restore: no active session found");
-        setUser(null);
-        localStorage.removeItem('wallovo_user_session');
+    const initAuth = async () => {
+      try {
+        console.log("[Auth] initAuth started - calling getSession");
+        const { data } = await supabase.auth.getSession();
+        console.log("[Auth] initAuth finished. Session during app load:", data.session);
+        
+        setSession(data.session);
+        if (data.session && data.session.user) {
+          const u = data.session.user;
+          const profileUser = {
+            email: u.email || '',
+            fullName: u.user_metadata?.full_name || u.email?.split('@')[0] || 'User'
+          };
+          setUser(profileUser);
+          localStorage.setItem('wallovo_user_session', JSON.stringify(profileUser));
+        } else {
+          setUser(null);
+          localStorage.removeItem('wallovo_user_session');
+        }
+      } catch (err) {
+        console.error("[Auth] Error fetching session during app load:", err);
+      } finally {
+        console.log("[Auth] Setting authReady state to TRUE");
+        setAuthReady(true);
       }
-    });
+    };
+
+    initAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      console.log("[Auth] onAuthStateChange global event:", _event);
+      console.log("[Auth] onAuthStateChange global event:", _event, "Session after event/login:", session);
+      setSession(session);
       if (session && session.user) {
         const u = session.user;
         const profileUser = {
@@ -112,12 +118,24 @@ export default function App() {
     };
   }, []);
 
-  // Redirect to login page if unauthenticated when attempting to view dashboard mode
+  // Redirect to login page only after checking session finishes (authReady is true) and user is null
   useEffect(() => {
-    if (activeView === 'dashboard' && !user) {
-      window.location.href = '/login.html';
+    console.log("[Auth] Protected route effect triggered. State evaluation:", {
+      authReady,
+      activeView,
+      isAdminUserPresent: !!user,
+      userObject: user
+    });
+
+    if (authReady) {
+      if (activeView === 'dashboard' && !user) {
+        console.log("[Auth] Redirect trigger reason: authReady is true, activeView is dashboard, but user is null.");
+        window.location.href = '/login.html';
+      }
+    } else {
+      console.log("[Auth] Redirect logic skipped: authReady is false. Waiting for session initialization.");
     }
-  }, [activeView, user]);
+  }, [authReady, activeView, user]);
 
   const handleLogout = async () => {
     console.log("Executing sign out protocol...");

@@ -210,8 +210,29 @@
 
           if (data && data.user) {
             console.log("[Auth] signup success:", data.user);
+            
+            // Link to profiles table: profiles.id = auth.users.id
+            try {
+              console.log("[Auth] Inserting optional user metadata profile...");
+              await supabase.from('profiles').insert([
+                {
+                  id: data.user.id,
+                  full_name: fullName,
+                  email: email,
+                  created_at: new Date().toISOString()
+                }
+              ]);
+              console.log("[Auth] Option profile row created.");
+            } catch (profileErr) {
+              console.warn("[Auth] Profile insertion bypassed or table not ready:", profileErr);
+            }
+
             showSuccess("Account created successfully! Forwarding to executive login...");
             
+            // Disable loading/lock states BEFORE navigating
+            submitBtn.disabled = false;
+            submitBtn.textContent = "Create Account";
+
             // Redirect to login page to sign in cleanly as requested
             setTimeout(() => {
               window.location.href = '/login.html';
