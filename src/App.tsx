@@ -4,7 +4,8 @@ import {
 } from 'lucide-react';
 import { Testimonial } from './types';
 import { INITIAL_TESTIMONIALS } from './data';
-import { supabase, isSupabaseConfigured, clearSessionAndSignOut } from './lib/supabase';
+import { supabase, isSupabaseConfigured } from './lib/supabase';
+import { useAuth } from './context/AuthContext.jsx';
 
 // Component imports
 import Navbar from './components/Navbar';
@@ -18,21 +19,13 @@ import DashboardView from './components/DashboardView';
 import SubmitReviewModal from './components/SubmitReviewModal';
 
 export default function App() {
+  const { session, user, authReady, logout } = useAuth();
   const [activeView, setActiveView] = useState<'marketing' | 'dashboard'>('marketing');
-  const [session, setSession] = useState<any>(null);
-  const [authReady, setAuthReady] = useState(false);
-  const [user, setUser] = useState<{ email: string; fullName: string } | null>(() => {
-    try {
-      // Prioritize real user session cached locally to avoid navbar flicker
-      const realCached = localStorage.getItem('wallovo_user_session');
-      if (realCached) {
-        return JSON.parse(realCached);
-      }
-    } catch (e) {
-      console.error("Failed to parse instant user session:", e);
-    }
-    return null;
-  });
+  
+  const profileUser = user ? {
+    email: user.email || '',
+    fullName: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User'
+  } : null;
   
   // High-value global state: testimonials
   // Storing this at the parent level ensures that newly submitted reviews instantly show up 
@@ -63,64 +56,9 @@ export default function App() {
     }
   }, [notification]);
 
-  // Load session from Supabase on start and register a single global listener
-  useEffect(() => {
-    console.log("[Auth] App load session restore initiated. Current authReady state:", authReady);
-    
-    const initAuth = async () => {
-      try {
-        console.log("[Auth] initAuth started - calling getSession");
-        const { data } = await supabase.auth.getSession();
-        console.log("[Auth] initAuth finished. Session during app load:", data.session);
-        
-        setSession(data.session);
-        if (data.session && data.session.user) {
-          const u = data.session.user;
-          const profileUser = {
-            email: u.email || '',
-            fullName: u.user_metadata?.full_name || u.email?.split('@')[0] || 'User'
-          };
-          setUser(profileUser);
-          localStorage.setItem('wallovo_user_session', JSON.stringify(profileUser));
-        } else {
-          setUser(null);
-          localStorage.removeItem('wallovo_user_session');
-        }
-      } catch (err) {
-        console.error("[Auth] Error fetching session during app load:", err);
-      } finally {
-        console.log("[Auth] Setting authReady state to TRUE");
-        setAuthReady(true);
-      }
-    };
-
-    initAuth();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      console.log("[Auth] onAuthStateChange global event:", _event, "Session after event/login:", session);
-      setSession(session);
-      if (session && session.user) {
-        const u = session.user;
-        const profileUser = {
-          email: u.email || '',
-          fullName: u.user_metadata?.full_name || u.email?.split('@')[0] || 'User'
-        };
-        setUser(profileUser);
-        localStorage.setItem('wallovo_user_session', JSON.stringify(profileUser));
-      } else {
-        setUser(null);
-        localStorage.removeItem('wallovo_user_session');
-      }
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
-
   // Redirect to login page only after checking session finishes (authReady is true) and user is null
   useEffect(() => {
-    console.log("[Auth] Protected route effect triggered. State evaluation:", {
+    console.log("[Auth] Protected route effect triggered in App.tsx. State evaluation:", {
       authReady,
       activeView,
       isAdminUserPresent: !!user,
@@ -138,9 +76,8 @@ export default function App() {
   }, [authReady, activeView, user]);
 
   const handleLogout = async () => {
-    console.log("Executing sign out protocol...");
-    await clearSessionAndSignOut();
-    setUser(null);
+    console.log("Executing sign out protocol from App...");
+    await logout();
     triggerNotification('Handshake disconnected. Active session cleared.', 'info');
     setActiveView('marketing');
   };
@@ -174,7 +111,7 @@ export default function App() {
           handleScrollToTop();
         }}
         onSubmitReviewClick={() => setIsSubmitModalOpen(true)}
-        user={user}
+        user={profileUser}
         onLogout={handleLogout}
       />
 

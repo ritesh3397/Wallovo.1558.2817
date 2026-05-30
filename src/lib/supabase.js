@@ -1,37 +1,30 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+const envUrl = import.meta.env.VITE_SUPABASE_URL;
+const envAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-console.log("[Auth] Supabase URL configured:", !!supabaseUrl);
-console.log("[Auth] Supabase Anon Key configured:", !!supabaseAnonKey);
+// Use real project ID bgftqligmdevwxqdnjup as default when environment variables are not supplied or are placeholders
+export const supabaseUrl = (envUrl && envUrl !== 'undefined' && !envUrl.includes('placeholder'))
+  ? envUrl
+  : 'https://bgftqligmdevwxqdnjup.supabase.co';
+
+export const supabaseAnonKey = (envAnonKey && envAnonKey !== 'undefined' && !envAnonKey.includes('placeholder'))
+  ? envAnonKey
+  : 'placeholder';
+
+console.log("[Auth] Initializing Supabase client. Project URL:", supabaseUrl);
 
 export const isSupabaseConfigured = () => {
-  if (!supabaseUrl || !supabaseAnonKey) return false;
-  
-  const urlStr = String(supabaseUrl).trim();
-  const keyStr = String(supabaseAnonKey).trim();
-  
-  if (urlStr === '' || keyStr === '' || urlStr === 'undefined' || keyStr === 'undefined' || urlStr === 'null' || keyStr === 'null') {
+  const url = supabaseUrl;
+  const key = supabaseAnonKey;
+  if (!url || !key) return false;
+  if (url.includes('placeholder') || key.includes('placeholder')) {
     return false;
   }
-  
-  const invalidKeywords = [
-    'placeholder',
-    'your-project',
-    'insert-your',
-    'url-here',
-    'anon-key',
-    'your-supabase',
-    'example.co'
-  ];
-  
-  return !invalidKeywords.some(kw => 
-    urlStr.toLowerCase().includes(kw) || keyStr.toLowerCase().includes(kw)
-  );
+  return true;
 };
 
-// Exclusively instantiate the real Supabase client
+// One single global Supabase client instance
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     persistSession: true,
@@ -40,15 +33,10 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   }
 });
 
-// Clear session helper
+// Clean session purger used for clear sign out handshake
 export async function clearSessionAndSignOut() {
-  console.log("[Auth] Synchronously purging client cached credentials...");
-  
-  const localKeys = [
-    'wallovo_user_session',
-    'supabase.auth.token'
-  ];
-  localKeys.forEach(k => localStorage.removeItem(k));
+  console.log("[Auth] Purging client cache...");
+  localStorage.removeItem('wallovo_user_session');
   
   try {
     const keysToRemove = [];
@@ -60,11 +48,10 @@ export async function clearSessionAndSignOut() {
     }
     keysToRemove.forEach(k => localStorage.removeItem(k));
   } catch (err) {
-    console.warn("[Auth] Storage sweep warning:", err);
+    console.warn("[Auth] Cache sweep warning:", err);
   }
 
   try {
-    console.log("[Auth] Calling supabase.auth.signOut()...");
     await supabase.auth.signOut();
     console.log("[Auth] Signout complete.");
   } catch (err) {
