@@ -1,13 +1,26 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 
+console.log("SUPABASE_URL", import.meta.env.VITE_SUPABASE_URL);
+
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [session, setSession] = useState(null);
   const [user, setUser] = useState(null);
   const [authReady, setAuthReady] = useState(false);
+  const [signupData, setSignupData] = useState(null);
+  const [signupError, setSignupError] = useState(null);
+  const [loginError, setLoginError] = useState(null);
 
+  // New debugging states to track detailed execution
+  const [signUpCallState, setSignUpCallState] = useState('idle');
+  const [finallyBlockExecuted, setFinallyBlockExecuted] = useState('no');
+  const [exactResponse, setExactResponse] = useState(null);
+  const [exactError, setExactError] = useState(null);
+  const [beforeSignUpTime, setBeforeSignUpTime] = useState(null);
+  const [afterSignUpTime, setAfterSignUpTime] = useState(null);
+  const [finallyExecutedTime, setFinallyExecutedTime] = useState(null);
   // Initialize and check current session
   useEffect(() => {
     let active = true;
@@ -55,9 +68,11 @@ export function AuthProvider({ children }) {
 
   const login = async (email, password) => {
     console.log("[AuthContext] login starting for:", email);
+    setLoginError(null);
     const result = await supabase.auth.signInWithPassword({ email, password });
     if (result.error) {
       console.error("[AuthContext] login error:", result.error.message);
+      setLoginError(result.error);
     } else {
       console.log("[AuthContext] login success");
     }
@@ -65,22 +80,60 @@ export function AuthProvider({ children }) {
   };
 
   const signup = async (email, password, fullName) => {
-    console.log("[AuthContext] signup starting for:", email);
-    const result = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          full_name: fullName,
+    console.log("Signup started");
+    setSignupData(null);
+    setSignupError(null);
+    setSignUpCallState('before_signUp');
+    setFinallyBlockExecuted('no');
+    setExactResponse(null);
+    setExactError(null);
+    setBeforeSignUpTime(new Date().toLocaleTimeString());
+    setAfterSignUpTime(null);
+    setFinallyExecutedTime(null);
+
+    console.log("BEFORE signUp()");
+
+    let result;
+    try {
+      result = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: fullName,
+          }
         }
-      }
-    });
-    if (result.error) {
-      console.error("[AuthContext] signup error:", result.error.message);
-    } else {
-      console.log("[AuthContext] signup success");
+      });
+      console.log("AFTER signUp()");
+      console.log(result);
+      setSignUpCallState('after_signUp_success');
+      setAfterSignUpTime(new Date().toLocaleTimeString());
+      setExactResponse(result?.data || null);
+      setExactError(result?.error || null);
+    } catch (err) {
+      console.error("signUp exception occurred:", err);
+      result = { 
+        data: { user: null, session: null }, 
+        error: err 
+      };
+      setSignUpCallState('after_signUp_exception');
+      setAfterSignUpTime(new Date().toLocaleTimeString());
+      setExactError(err);
+    } finally {
+      console.log("signUp function finally{} block executed");
+      setFinallyBlockExecuted('yes');
+      setFinallyExecutedTime(new Date().toLocaleTimeString());
     }
-    return result;
+
+    const { data, error } = result;
+
+    console.log("SIGNUP DATA", data);
+    console.log("SIGNUP ERROR", error);
+
+    setSignupData(data);
+    setSignupError(error);
+
+    return { data, error };
   };
 
   const logout = async () => {
@@ -91,7 +144,24 @@ export function AuthProvider({ children }) {
   };
 
   return (
-    <AuthContext.Provider value={{ session, user, authReady, login, signup, logout }}>
+    <AuthContext.Provider value={{ 
+      session, 
+      user, 
+      authReady, 
+      login, 
+      signup, 
+      logout,
+      signupData, 
+      signupError, 
+      loginError,
+      signUpCallState,
+      finallyBlockExecuted,
+      exactResponse,
+      exactError,
+      beforeSignUpTime,
+      afterSignUpTime,
+      finallyExecutedTime
+    }}>
       {children}
     </AuthContext.Provider>
   );

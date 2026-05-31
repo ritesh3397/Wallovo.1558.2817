@@ -10,7 +10,7 @@ export const supabaseUrl = (envUrl && envUrl !== 'undefined' && !envUrl.includes
 
 export const supabaseAnonKey = (envAnonKey && envAnonKey !== 'undefined' && !envAnonKey.includes('placeholder'))
   ? envAnonKey
-  : 'placeholder';
+  : 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJnZnRxbGlnbWRldnd4cWRuanVwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk0MzczNDcsImV4cCI6MjA5NTAxMzM0N30.DK3hRlsfGIarYITE41RzWrd1Bk7e1ZBITpbewq6fLk8';
 
 console.log("[Auth] Initializing Supabase client. Project URL:", supabaseUrl);
 

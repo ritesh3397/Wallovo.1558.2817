@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 import { AuthProvider, useAuth } from '../context/AuthContext';
+import DebugPanel from '../components/DebugPanel';
 import '../../src/index.css';
+
+console.log("SUPABASE_URL", import.meta.env.VITE_SUPABASE_URL);
 
 export function SignupContent() {
   const { session, signup, authReady } = useAuth();
@@ -22,52 +25,43 @@ export function SignupContent() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log("BUTTON CLICKED");
+    console.log("HANDLE SIGNUP ENTERED");
     setErrorMsg('');
     setSuccessMsg('');
 
     const trimmedName = fullName.trim();
     const trimmedEmail = email.trim();
 
-    if (!trimmedName || !trimmedEmail || !password) {
-      setErrorMsg("Please fill out all fields.");
-      return;
-    }
-
-    if (password.length < 6) {
-      setErrorMsg("Weak password — must be at least 6 characters.");
-      return;
-    }
-
     setLoading(true);
     console.log("[Signup Page] Commencing user registration for:", trimmedEmail);
 
     try {
+      console.log("BEFORE signup method context call");
       const { data, error } = await signup(trimmedEmail, password, trimmedName);
+      console.log("AFTER signup method context call returned", { data, error });
 
       if (error) {
         console.error("[Signup Page] Registration failed:", error.message);
-        setErrorMsg("Signup Failed: " + error.message);
-        setLoading(false);
+        setErrorMsg(error.message);
+        setLoading(false); // Error handler matches
         return;
       }
 
-      if (data?.user) {
-        console.log("[Signup Page] Registration successful for user ID:", data.user.id);
-        setSuccessMsg("Account created successfully! Forwarding to executive login...");
-        
-        // Wait a short duration, then transition to login portal
-        setTimeout(() => {
-          window.location.href = '/login.html';
-        }, 1200);
-      } else {
-        console.warn("[Signup Page] Registration returned empty payload");
-        setErrorMsg("Signup returned empty payload. Please try again.");
-        setLoading(false);
-      }
+      console.log("[Signup Page] Registration successful");
+      setSuccessMsg("Account created successfully! Forwarding to executive login...");
+      setLoading(false); // Success handler matches
+      
+      // Wait a short duration, then transition to login portal
+      setTimeout(() => {
+        window.location.href = '/login.html';
+      }, 1200);
     } catch (err) {
       console.error("[Signup Page] Exception during registration:", err);
       setErrorMsg(err.message || "An authentication server exception occurred. Please retry.");
-      setLoading(false);
+      setLoading(false); // Catch handler matches
+    } finally {
+      setLoading(false); // Finally block matches
     }
   };
 
@@ -185,6 +179,9 @@ export function SignupContent() {
           </div>
         </div>
       </main>
+
+      {/* Debug Panel Section */}
+      <DebugPanel localLoading={loading} />
 
       {/* Aesthetic Footer info banner */}
       <footer className="relative z-10 px-8 pb-8 flex flex-col sm:flex-row items-center justify-between text-white/20 text-[9px] uppercase tracking-[0.2em] font-medium gap-3">
