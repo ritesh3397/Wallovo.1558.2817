@@ -58,9 +58,9 @@ export default function Collect() {
       setLoading(true);
       setErrorMsg('');
 
-      // Fetch the business profile from custom users table matching the username
+      // Fetch the business profile from custom profiles table matching the username
       const { data, error } = await supabase
-        .from('users')
+        .from('profiles')
         .select('*')
         .eq('username', targetUsername)
         .maybeSingle();

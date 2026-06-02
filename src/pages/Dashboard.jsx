@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { 
   Sparkles, CheckCircle, Info, X, Star, Link, Copy, ExternalLink, 
   User, Mail, ArrowRight, Table, LogOut, Check, Sliders, AlertCircle,
-  Clock, ShieldAlert, BadgeCheck, MessageSquare, Hourglass, Trash2
+  Clock, ShieldAlert, BadgeCheck, MessageSquare, Hourglass, Trash2, Home
 } from 'lucide-react';
 import { supabase, clearSessionAndSignOut } from '../lib/supabase';
 import '../../src/index.css';
@@ -70,9 +70,9 @@ export default function Dashboard() {
     const fullName = user.user_metadata?.full_name || user.email.split('@')[0];
     
     try {
-      // 1. Fetch user profile from custom users table
+      // 1. Fetch user profile from custom profiles table
       const { data, error } = await supabase
-        .from('users')
+        .from('profiles')
         .select('*')
         .eq('id', user.id)
         .maybeSingle();
@@ -91,7 +91,7 @@ export default function Dashboard() {
 
         // Verify uniqueness
         const { data: existingUser } = await supabase
-          .from('users')
+          .from('profiles')
           .select('id')
           .eq('username', finalUsername)
           .maybeSingle();
@@ -103,7 +103,7 @@ export default function Dashboard() {
         const link = `${window.location.origin}/collect/${finalUsername}`;
         
         const { data: newProfile, error: insertError } = await supabase
-          .from('users')
+          .from('profiles')
           .insert({
             id: user.id,
             email: user.email,
@@ -139,19 +139,7 @@ export default function Dashboard() {
     } catch (err) {
       console.error("[Database Connection Issue]", err);
       setDbError(err.message || String(err));
-      
-      // Setup beautiful mock preview fallback to keep application fully interactive and operational
-      const fallbackUsername = fullName.toLowerCase().replace(/[^a-z0-9]/g, '') + '999';
-      setUserProfile({
-        id: user.id,
-        email: user.email,
-        full_name: fullName,
-        username: fallbackUsername,
-        collection_link: `${window.location.origin}/collect/${fallbackUsername}`
-      });
-      
-      // Fallback fallback testimonials are empty so statistics show actual Supabase DB values
-      setTestimonials([]);
+      triggerNotification("Database synchronisation failure: " + (err.message || String(err)), "error");
     }
   };
 
@@ -378,6 +366,13 @@ CREATE POLICY "Users modify own testimonials" ON public.testimonials FOR ALL USI
           </div>
 
           <div className="flex items-center gap-3">
+            <a
+              href="/"
+              className="bg-black border border-white/10 hover:border-[#FFB6C9]/40 text-slate-300 hover:text-white text-xs font-mono font-bold px-4 py-1.5 rounded-full transition-all duration-300 flex items-center gap-1.5 cursor-pointer"
+            >
+              <Home className="w-3.5 h-3.5" />
+              Home
+            </a>
             <button
               id="logout-btn"
               onClick={handleLogout}
@@ -425,54 +420,6 @@ CREATE POLICY "Users modify own testimonials" ON public.testimonials FOR ALL USI
             </div>
           </div>
         </div>
-
-        {/* Database Missing Schema Banner */}
-        {dbError && (
-          <div className="bg-zinc-950 border border-amber-500/20 rounded-2xl p-5 space-y-4">
-            <div className="flex items-start gap-3">
-              <ShieldAlert className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
-              <div className="space-y-1 flex-1">
-                <h3 className="text-sm font-bold text-white font-mono">Database Tables Missing / RLS Inactive</h3>
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  The Supabase client connected, but the custom <code className="text-cyan-400 font-mono font-bold bg-[#0a0a0a] px-1 py-0.5 rounded">users</code> or <code className="text-cyan-400 font-mono font-bold bg-[#0a0a0a] px-1 py-0.5 rounded">testimonials</code> public tables aren't found in your project yet. We have automatically fallback-activated local sandbox mode so you can preview everything perfectly.
-                </p>
-              </div>
-              <button 
-                onClick={() => setShowSqlGuide(!showSqlGuide)}
-                className="text-xs text-cyan-400 hover:text-cyan-300 font-mono underline ml-auto shrink-0 bg-cyan-950/20 border border-cyan-900/30 px-3 py-1 rounded"
-              >
-                {showSqlGuide ? 'Hide Setup guide' : 'Show SQL setup guide'}
-              </button>
-            </div>
-
-            {showSqlGuide && (
-              <div className="animate-fade-in bg-black rounded-xl p-4 border border-zinc-800 space-y-3 font-mono text-xs">
-                <p className="text-zinc-400 text-[11px]">
-                  Copy and run this exact SQL block in your <strong className="text-white">Supabase Dashboard &gt; SQL Editor</strong> to create the necessary tables and row-level security policies instantly:
-                </p>
-                <div className="relative">
-                  <pre className="text-[10px] text-slate-300 bg-zinc-950 p-3 rounded-lg overflow-x-auto max-h-64 border border-zinc-850 select-text whitespace-pre">
-                    {schemaSql}
-                  </pre>
-                  <button 
-                    onClick={() => {
-                      navigator.clipboard.writeText(schemaSql);
-                      triggerNotification("SQL instructions copied!");
-                    }}
-                    className="absolute top-2 right-2 bg-zinc-900 hover:bg-zinc-850 p-1.5 rounded text-cyan-400 hover:text-white border border-cyan-800/30 cursor-pointer"
-                    title="Copy Block"
-                  >
-                    <Copy className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-                <div className="flex gap-2 text-[10px] text-[#00E5FF] bg-cyan-950/10 p-2 rounded border border-cyan-900/20">
-                  <Info className="w-4 h-4 shrink-0" />
-                  <span>After executing the SQL above, refresh this dashboard page to synchronize directly with your permanent cloud database!</span>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
 
         {/* Dynamic unique collection URL display box */}
         <div className="bg-black border border-cyan-500/10 rounded-3xl p-6 md:p-8 space-y-6 relative overflow-hidden">
