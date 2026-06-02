@@ -16,15 +16,9 @@ async function startServer() {
       server: { middlewareMode: true },
       appType: "custom",
     });
-    app.use(vite.middlewares);
-  } else {
-    // Serve static files in dist first
-    app.use(express.static(path.join(process.cwd(), "dist"), {
-      index: false,
-    }));
   }
 
-  // Intercept collection routes beautifully
+  // Intercept collection routes beautifully (registered before Vite / static middlewares)
   app.get(["/collect/:username", "/collect/:username/"], async (req, res, next) => {
     try {
       const collectHtmlPath = path.resolve(process.cwd(), "collect.html");
@@ -40,7 +34,7 @@ async function startServer() {
     }
   });
 
-  // Clean URLs routing handler
+  // Clean URLs routing handler (registered before Vite / static middlewares)
   app.use(async (req, res, next) => {
     const urlPath = req.path;
     
@@ -66,6 +60,18 @@ async function startServer() {
     
     next();
   });
+
+  // Setup Vite middleware in dev or static public file hosting in production AFTER custom paths are matched
+  if (process.env.NODE_ENV !== "production") {
+    if (vite) {
+      app.use(vite.middlewares);
+    }
+  } else {
+    // Serve static files in dist first
+    app.use(express.static(path.join(process.cwd(), "dist"), {
+      index: false,
+    }));
+  }
 
   // Fallback catch-all for routing to SPA
   app.get("*", async (req, res, next) => {
