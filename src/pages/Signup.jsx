@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 import { AuthProvider, useAuth } from '../context/AuthContext';
-import DebugPanel from '../components/DebugPanel';
+import { supabase } from '../lib/supabase';
 import '../../src/index.css';
 
-console.log("SUPABASE_URL", import.meta.env.VITE_SUPABASE_URL);
-
 export function SignupContent() {
-  const { session, signup, authReady } = useAuth();
+  const { session, authReady } = useAuth();
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -25,8 +23,6 @@ export function SignupContent() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("BUTTON CLICKED");
-    console.log("HANDLE SIGNUP ENTERED");
     setErrorMsg('');
     setSuccessMsg('');
 
@@ -34,34 +30,28 @@ export function SignupContent() {
     const trimmedEmail = email.trim();
 
     setLoading(true);
-    console.log("[Signup Page] Commencing user registration for:", trimmedEmail);
 
     try {
-      console.log("BEFORE signup method context call");
-      const { data, error } = await signup(trimmedEmail, password, trimmedName);
-      console.log("AFTER signup method context call returned", { data, error });
+      const { data, error } = await supabase.auth.signUp({
+        email: trimmedEmail,
+        password,
+        options: {
+          data: {
+            full_name: trimmedName,
+          }
+        }
+      });
+
+      setLoading(false);
 
       if (error) {
-        console.error("[Signup Page] Registration failed:", error.message);
         setErrorMsg(error.message);
-        setLoading(false); // Error handler matches
-        return;
+      } else {
+        setSuccessMsg("Account created successfully! Check your email to confirm registration.");
       }
-
-      console.log("[Signup Page] Registration successful");
-      setSuccessMsg("Account created successfully! Forwarding to executive login...");
-      setLoading(false); // Success handler matches
-      
-      // Wait a short duration, then transition to login portal
-      setTimeout(() => {
-        window.location.href = '/login.html';
-      }, 1200);
     } catch (err) {
-      console.error("[Signup Page] Exception during registration:", err);
-      setErrorMsg(err.message || "An authentication server exception occurred. Please retry.");
-      setLoading(false); // Catch handler matches
-    } finally {
-      setLoading(false); // Finally block matches
+      setErrorMsg(err.message || "An authentication exception occurred.");
+      setLoading(false);
     }
   };
 
@@ -179,9 +169,6 @@ export function SignupContent() {
           </div>
         </div>
       </main>
-
-      {/* Debug Panel Section */}
-      <DebugPanel localLoading={loading} />
 
       {/* Aesthetic Footer info banner */}
       <footer className="relative z-10 px-8 pb-8 flex flex-col sm:flex-row items-center justify-between text-white/20 text-[9px] uppercase tracking-[0.2em] font-medium gap-3">

@@ -13,14 +13,6 @@ export function AuthProvider({ children }) {
   const [signupError, setSignupError] = useState(null);
   const [loginError, setLoginError] = useState(null);
 
-  // New debugging states to track detailed execution
-  const [signUpCallState, setSignUpCallState] = useState('idle');
-  const [finallyBlockExecuted, setFinallyBlockExecuted] = useState('no');
-  const [exactResponse, setExactResponse] = useState(null);
-  const [exactError, setExactError] = useState(null);
-  const [beforeSignUpTime, setBeforeSignUpTime] = useState(null);
-  const [afterSignUpTime, setAfterSignUpTime] = useState(null);
-  const [finallyExecutedTime, setFinallyExecutedTime] = useState(null);
   // Initialize and check current session
   useEffect(() => {
     let active = true;
@@ -80,22 +72,11 @@ export function AuthProvider({ children }) {
   };
 
   const signup = async (email, password, fullName) => {
-    console.log("Signup started");
     setSignupData(null);
     setSignupError(null);
-    setSignUpCallState('before_signUp');
-    setFinallyBlockExecuted('no');
-    setExactResponse(null);
-    setExactError(null);
-    setBeforeSignUpTime(new Date().toLocaleTimeString());
-    setAfterSignUpTime(null);
-    setFinallyExecutedTime(null);
 
-    console.log("BEFORE signUp()");
-
-    let result;
     try {
-      result = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -104,36 +85,14 @@ export function AuthProvider({ children }) {
           }
         }
       });
-      console.log("AFTER signUp()");
-      console.log(result);
-      setSignUpCallState('after_signUp_success');
-      setAfterSignUpTime(new Date().toLocaleTimeString());
-      setExactResponse(result?.data || null);
-      setExactError(result?.error || null);
+
+      setSignupData(data);
+      setSignupError(error);
+      return { data, error };
     } catch (err) {
-      console.error("signUp exception occurred:", err);
-      result = { 
-        data: { user: null, session: null }, 
-        error: err 
-      };
-      setSignUpCallState('after_signUp_exception');
-      setAfterSignUpTime(new Date().toLocaleTimeString());
-      setExactError(err);
-    } finally {
-      console.log("signUp function finally{} block executed");
-      setFinallyBlockExecuted('yes');
-      setFinallyExecutedTime(new Date().toLocaleTimeString());
+      setSignupError(err);
+      return { data: null, error: err };
     }
-
-    const { data, error } = result;
-
-    console.log("SIGNUP DATA", data);
-    console.log("SIGNUP ERROR", error);
-
-    setSignupData(data);
-    setSignupError(error);
-
-    return { data, error };
   };
 
   const logout = async () => {
@@ -153,14 +112,7 @@ export function AuthProvider({ children }) {
       logout,
       signupData, 
       signupError, 
-      loginError,
-      signUpCallState,
-      finallyBlockExecuted,
-      exactResponse,
-      exactError,
-      beforeSignUpTime,
-      afterSignUpTime,
-      finallyExecutedTime
+      loginError
     }}>
       {children}
     </AuthContext.Provider>
