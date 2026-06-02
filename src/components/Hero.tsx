@@ -39,7 +39,7 @@ export default function Hero({ onExploreClick, onSubmitReviewClick }: HeroProps)
             onClick={onExploreClick}
             className="w-full sm:w-auto px-8 py-4 rounded-full bg-gradient-to-r from-[#FFB6C9] to-pink-500 text-black font-semibold text-sm hover:opacity-90 shadow-[0_0_25px_rgba(255,182,201,0.25)] hover:shadow-[0_0_35px_rgba(255,182,201,0.4)] transition-all duration-300 cursor-pointer"
           >
-            Launch AI Dashboard →
+            Go to Dashboard →
           </button>
           <button
             onClick={onSubmitReviewClick}

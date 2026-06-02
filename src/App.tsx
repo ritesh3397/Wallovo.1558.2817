@@ -148,8 +148,11 @@ export default function App() {
             {/* Cinematic Hero */}
             <Hero 
               onExploreClick={() => {
-                setActiveView('dashboard');
-                handleScrollToTop();
+                if (user) {
+                  window.location.href = '/dashboard.html';
+                } else {
+                  window.location.href = '/login.html';
+                }
               }}
               onSubmitReviewClick={() => setIsSubmitModalOpen(true)}
             />

@@ -97,6 +97,12 @@ export default function Navbar({ activeView, setActiveView, onSubmitReviewClick,
                   href="/login.html"
                   className="text-xs text-brand-soft hover:text-[#FFB6C9] font-medium transition-colors px-2.5 py-2 cursor-pointer font-sans"
                 >
+                  Dashboard
+                </a>
+                <a
+                  href="/login.html"
+                  className="text-xs text-brand-soft hover:text-[#FFB6C9] font-medium transition-colors px-2.5 py-2 cursor-pointer font-sans"
+                >
                   Login
                 </a>
                 <a
@@ -108,6 +114,12 @@ export default function Navbar({ activeView, setActiveView, onSubmitReviewClick,
               </>
             ) : (
               <div className="flex items-center gap-2.5">
+                <a
+                  href="/dashboard.html"
+                  className="inline-flex text-[10.5px] text-[#FFB6C9] hover:text-[#FFB6C9] font-mono tracking-wider font-semibold transition-colors px-2 py-1 bg-white/5 rounded-full border border-[#FFB6C9]/20"
+                >
+                  Dashboard
+                </a>
                 <a
                   href="/profile.html"
                   className="hidden md:inline-flex text-[10.5px] text-zinc-300 hover:text-[#FFB6C9] font-mono tracking-wider font-semibold transition-colors px-1 py-1"

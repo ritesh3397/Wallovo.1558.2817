@@ -24,6 +24,9 @@ export default function Dashboard() {
   const [dbError, setDbError] = useState(null);
   const [showSqlGuide, setShowSqlGuide] = useState(false);
 
+  const username = userProfile?.username || 'operator';
+  const collectionLink = `${window.location.origin}/collect/${username}`;
+
   // Load active session and bootstrap user data
   useEffect(() => {
     async function initDashboard() {
@@ -97,7 +100,7 @@ export default function Dashboard() {
           finalUsername = `${baseUsername}${Math.floor(1000 + Math.random() * 9000)}`;
         }
 
-        const link = `https://wallovo.vercel.app/collect/${finalUsername}`;
+        const link = `${window.location.origin}/collect/${finalUsername}`;
         
         const { data: newProfile, error: insertError } = await supabase
           .from('users')
@@ -144,28 +147,11 @@ export default function Dashboard() {
         email: user.email,
         full_name: fullName,
         username: fallbackUsername,
-        collection_link: `https://wallovo.vercel.app/collect/${fallbackUsername}`
+        collection_link: `${window.location.origin}/collect/${fallbackUsername}`
       });
       
-      // Fallback fallback testimonials for premium user visualization
-      setTestimonials([
-        {
-          id: 'mock-1',
-          customer_name: 'Daria Thorne',
-          customer_email: 'daria@pulseflow.io',
-          testimonial_text: 'Integrating Wallovo reviews took less than 2 minutes. Our onboarding conversion rates immediately spiked by 18%! Highly recommend.',
-          status: 'approved',
-          created_at: new Date(Date.now() - 48200000).toISOString()
-        },
-        {
-          id: 'mock-2',
-          customer_name: 'Jordan Finch',
-          customer_email: 'jordan@hexadesign.net',
-          testimonial_text: 'A absolute masterpiece of design and typography. It renders pristine user feedback without the standard clutter.',
-          status: 'pending',
-          created_at: new Date(Date.now() - 128200000).toISOString()
-        }
-      ]);
+      // Fallback fallback testimonials are empty so statistics show actual Supabase DB values
+      setTestimonials([]);
     }
   };
 
@@ -177,9 +163,8 @@ export default function Dashboard() {
   };
 
   const handleCopyLink = () => {
-    if (!userProfile) return;
-    const url = `https://wallovo.vercel.app/collect/${userProfile.username}`;
-    navigator.clipboard.writeText(url);
+    if (!collectionLink) return;
+    navigator.clipboard.writeText(collectionLink);
     setCopied(true);
     triggerNotification("Copied collection link to clipboard!");
     setTimeout(() => setCopied(false), 2000);
@@ -507,7 +492,7 @@ CREATE POLICY "Users modify own testimonials" ON public.testimonials FOR ALL USI
             <div className="flex-1 flex items-center gap-2.5 px-3 min-h-[44px]">
               <div className="w-2 h-2 rounded-full bg-cyan-400 shrink-0" />
               <span className="text-xs sm:text-sm font-mono text-cyan-400 select-all break-all tracking-tight font-medium">
-                {userProfile ? `https://wallovo.vercel.app/collect/${userProfile.username}` : 'Generating...'}
+                {userProfile ? collectionLink : 'Generating...'}
               </span>
             </div>
 
@@ -530,7 +515,7 @@ CREATE POLICY "Users modify own testimonials" ON public.testimonials FOR ALL USI
               </button>
 
               <a
-                href={`/collect.html?u=${userProfile?.username || 'operator'}`}
+                href={collectionLink || '#'}
                 target="_blank"
                 rel="noreferrer"
                 className="w-full sm:w-auto bg-black hover:bg-zinc-900 border border-zinc-800 hover:border-cyan-500/40 text-slate-300 hover:text-white font-semibold font-mono text-xs px-5 py-2.5 rounded-xl transition-all duration-200 flex items-center justify-center gap-1.5 cursor-pointer min-h-[40px]"
