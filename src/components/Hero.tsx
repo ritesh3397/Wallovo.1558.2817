@@ -36,6 +36,12 @@ export default function Hero({ onExploreClick, onSubmitReviewClick }: HeroProps)
         {/* Action button pills */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-20">
           <button
+            onClick={() => { window.location.href = '/collect/testuser'; }}
+            className="w-full sm:w-auto px-8 py-4 rounded-full bg-gradient-to-r from-cyan-400 to-emerald-500 text-black font-bold text-sm hover:opacity-90 shadow-[0_0_25px_rgba(34,208,244,0.25)] hover:shadow-[0_0_35px_rgba(34,208,244,0.4)] transition-all duration-300 cursor-pointer"
+          >
+            Submit Testimonial
+          </button>
+          <button
             onClick={onExploreClick}
             className="w-full sm:w-auto px-8 py-4 rounded-full bg-gradient-to-r from-[#FFB6C9] to-pink-500 text-black font-semibold text-sm hover:opacity-90 shadow-[0_0_25px_rgba(255,182,201,0.25)] hover:shadow-[0_0_35px_rgba(255,182,201,0.4)] transition-all duration-300 cursor-pointer"
           >
