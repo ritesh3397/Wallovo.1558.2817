@@ -7,42 +7,15 @@
     },
     {
       "source": "/collect-test",
-      "destination": "/collect.html"
+      "destination": "/collect"
     },
     {
       "source": "/collect/:username",
-      "destination": "/collect.html"
+      "destination": "/collect"
     },
     {
       "source": "/collect/:username/",
-      "destination": "/collect.html"
-    },
-    {
-      "source": "/dashboard",
-      "destination": "/dashboard.html"
-    },
-    {
-      "source": "/login",
-      "destination": "/login.html"
-    },
-    {
-      "source": "/signup",
-      "destination": "/signup.html"
-    },
-    {
-      "source": "/profile",
-      "destination": "/profile.html"
-    }
-  ],
-  "headers": [
-    {
-      "source": "/route-test",
-      "headers": [
-        {
-          "key": "Content-Type",
-          "value": "text/plain; charset=utf-8"
-        }
-      ]
+      "destination": "/collect"
     }
   ]
 }
