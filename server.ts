@@ -23,6 +23,32 @@ async function startServer() {
     res.send("route working");
   });
 
+  // Temporary route test for serving collect.html directly
+  app.get("/collect-test", async (req, res, next) => {
+    try {
+      const collectHtmlPath = path.resolve(process.cwd(), "collect.html");
+      if (process.env.NODE_ENV !== "production") {
+        if (!fs.existsSync(collectHtmlPath)) {
+          return res.status(500).send(`Error: collect.html does not exist at ${collectHtmlPath}`);
+        }
+        let template = fs.readFileSync(collectHtmlPath, "utf-8");
+        if (vite) {
+          template = await vite.transformIndexHtml(req.originalUrl || req.url, template);
+        }
+        return res.status(200).set({ "Content-Type": "text/html" }).end(template);
+      } else {
+        const prodHtmlPath = path.join(process.cwd(), "dist", "collect.html");
+        if (fs.existsSync(prodHtmlPath)) {
+          return res.sendFile(prodHtmlPath);
+        } else {
+          return res.status(500).send(`Error: dist/collect.html does not exist at ${prodHtmlPath}`);
+        }
+      }
+    } catch (err: any) {
+      res.status(500).send(`Internal Server Error: ${err.message || err}`);
+    }
+  });
+
   // Intercept collection routes beautifully (registered before Vite / static middlewares)
   app.get(["/collect/:username", "/collect/:username/"], async (req, res, next) => {
     try {

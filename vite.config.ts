@@ -6,7 +6,28 @@ import {defineConfig, loadEnv} from 'vite';
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
   return {
-    plugins: [react(), tailwindcss()],
+    plugins: [
+      react(),
+      tailwindcss(),
+      {
+        name: 'collect-routing-fallback',
+        configureServer(server) {
+          server.middlewares.use((req, res, next) => {
+            const parsedUrl = req.url ? req.url.split('?')[0] : '';
+            if (parsedUrl.startsWith('/collect/')) {
+              const query = req.url && req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : '';
+              req.url = '/collect.html' + query;
+            } else if (parsedUrl === '/route-test') {
+              res.statusCode = 200;
+              res.setHeader('Content-Type', 'text/plain');
+              res.end('route working');
+              return;
+            }
+            next();
+          });
+        }
+      }
+    ],
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),
