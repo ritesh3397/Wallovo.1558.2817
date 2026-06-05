@@ -151,16 +151,27 @@ export default function Collect() {
   return (
     <div className="min-h-screen flex flex-col justify-between selection:bg-cyan-500/20 selection:text-white relative">
       
-      {/* Background aesthetics */}
-      <header className="relative z-10 px-8 pt-8 flex justify-center w-full">
-        <div className="w-full max-w-lg flex items-center justify-between border border-cyan-500/10 bg-black/80 backdrop-blur-md rounded-full px-5 py-2.5">
-          <div className="flex items-center gap-2">
-            <div className="w-5 h-5 rounded-full bg-cyan-500 animate-pulse" />
-            <span className="text-xs font-bold tracking-tight text-white font-mono">Wallovo Gateway</span>
+      {/* Background aesthetics and Navigation Header */}
+      <header className="relative z-10 px-4 pt-8 flex justify-center w-full">
+        <div className="w-full max-w-lg flex flex-row items-center justify-between border border-cyan-500/20 bg-black/90 backdrop-blur-lg rounded-full p-2 select-none shadow-[0_0_20px_rgba(6,182,212,0.05)]">
+          <button
+            onClick={() => { window.location.href = '/'; }}
+            className="flex items-center gap-1 text-slate-400 hover:text-cyan-400 font-mono text-[11px] font-semibold transition-all cursor-pointer group px-3 py-1.5"
+          >
+            <span className="transition-transform group-hover:-translate-x-1">←</span> Back to Home
+          </button>
+
+          <div className="hidden sm:flex items-center gap-2 px-2.5 py-1 rounded bg-zinc-950/60 border border-zinc-900">
+            <div className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse" />
+            <span className="text-[9px] font-bold tracking-wider text-white/50 font-mono">GATEWAY</span>
           </div>
-          <span className="text-[8px] uppercase font-mono px-2 py-0.5 rounded bg-cyan-950/40 text-cyan-400 border border-cyan-500/10">
-            SSL Secure
-          </span>
+
+          <button
+            onClick={() => { window.location.href = '/signup'; }}
+            className="flex items-center gap-1 bg-cyan-500/10 hover:bg-cyan-500 text-cyan-400 hover:text-black hover:shadow-[0_0_15px_rgba(6,182,212,0.3)] font-mono text-[11px] font-bold px-3.5 py-1.5 rounded-full transition-all cursor-pointer group"
+          >
+            Try Wallovo <span className="transition-transform group-hover:translate-x-1">→</span>
+          </button>
         </div>
       </header>
 
