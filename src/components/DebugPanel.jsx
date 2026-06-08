@@ -78,49 +78,14 @@ export default function DebugPanel({ localLoading }) {
 
   // Run POST /signup probe (bypassing supabase-js completely)
   const runDirectSignupTest = async () => {
-    setDirectSignupStatus('fetching');
-    setDirectSignupStatusCode(null);
-    setDirectSignupResponseBody('');
-    setDirectSignupErrorMsg('');
-    setDirectSignupTime(new Date().toLocaleTimeString());
-
-    const targetKey = envAnonKeyVal || supabaseAnonKey;
-    const bodyPayload = {
-      email: signupTestEmail,
-      password: signupTestPassword
-    };
-
-    console.log("[Diagnostic] Launching direct POST signup test to /auth/v1/signup with:", signupTestEmail);
-
-    try {
-      const response = await fetch(
-        "https://bgftqligmdevwxqdnjup.supabase.co/auth/v1/signup",
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'apikey': targetKey,
-            'Authorization': `Bearer ${targetKey}`
-          },
-          body: JSON.stringify(bodyPayload)
-        }
-      );
-      
-      setDirectSignupStatusCode(response.status);
-      const text = await response.text();
-      setDirectSignupResponseBody(text);
-      setDirectSignupStatus('success');
-    } catch (err) {
-      console.error("[Diagnostic] Direct POST signup fetch error:", err);
-      setDirectSignupErrorMsg(err.message || String(err));
-      setDirectSignupStatus('error');
-    }
+    console.log("[Diagnostic] runDirectSignupTest has been disabled to protect email send limits.");
+    setDirectSignupStatus('idle');
+    setDirectSignupErrorMsg('Disabled in production.');
   };
 
-  // Run on mount
+  // Run on mount (Disabled in production to protect email quotas)
   useEffect(() => {
-    runDirectFetchTest();
-    runDirectSignupTest();
+    // No automatic fetches on load
   }, []);
 
   // Read current configuration
