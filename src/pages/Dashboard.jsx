@@ -368,7 +368,7 @@ CREATE POLICY "Users modify own testimonials" ON public.testimonials FOR ALL USI
           <div className="flex items-center gap-3">
             <a
               href="/"
-              className="bg-black border border-white/10 hover:border-[#FFB6C9]/40 text-slate-300 hover:text-white text-xs font-mono font-bold px-4 py-1.5 rounded-full transition-all duration-300 flex items-center gap-1.5 cursor-pointer"
+              className="bg-black border border-white/10 hover:border-[#22D3EE]/40 text-slate-300 hover:text-white text-xs font-mono font-bold px-4 py-1.5 rounded-full transition-all duration-300 flex items-center gap-1.5 cursor-pointer"
             >
               <Home className="w-3.5 h-3.5" />
               Home
@@ -394,9 +394,8 @@ CREATE POLICY "Users modify own testimonials" ON public.testimonials FOR ALL USI
           
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-[#00E5FF] animate-ping" />
-              <span className="text-[10px] uppercase font-mono tracking-widest text-[#00E5FF] bg-cyan-950/20 border border-cyan-900/30 px-2 py-0.5 rounded">
-                Active Session Handshake
+              <span className="text-[10px] uppercase font-mono tracking-widest text-[#00E5FF] bg-cyan-950/20 border border-cyan-900/30 px-3 py-0.5 rounded-full">
+                Merchant Profile
               </span>
             </div>
             <h1 className="text-3xl font-extrabold tracking-tight text-white mt-1">
@@ -408,15 +407,11 @@ CREATE POLICY "Users modify own testimonials" ON public.testimonials FOR ALL USI
           </div>
 
           <div className="flex gap-4">
-            <div className="p-4 bg-zinc-950 border border-cyan-500/5 rounded-2xl flex flex-col justify-center min-w-[120px]">
-              <span className="text-[9px] uppercase tracking-wider text-slate-500 font-mono">Secure Node</span>
-              <span className="text-sm font-semibold font-mono text-cyan-400 flex items-center gap-1 mt-0.5">
-                <BadgeCheck className="w-4 h-4 text-[#00E5FF] shrink-0" /> Cloud Run
+            <div className="p-4 bg-zinc-950 border border-zinc-900 rounded-2xl flex flex-col justify-center min-w-[124px]">
+              <span className="text-[9px] uppercase tracking-wider text-slate-500 font-mono">ACCOUNT STATE</span>
+              <span className="text-xs font-semibold font-mono text-cyan-405 flex items-center gap-1.5 mt-0.5">
+                <BadgeCheck className="w-4 h-4 text-[#00E5FF] shrink-0" /> Verified Merchant
               </span>
-            </div>
-            <div className="p-4 bg-zinc-950 border border-cyan-500/5 rounded-2xl flex flex-col justify-center min-w-[100px]">
-              <span className="text-[9px] uppercase tracking-wider text-slate-500 font-mono">Status</span>
-              <span className="text-sm font-semibold font-mono text-emerald-400 mt-0.5">Online</span>
             </div>
           </div>
         </div>
@@ -644,9 +639,9 @@ CREATE POLICY "Users modify own testimonials" ON public.testimonials FOR ALL USI
 
       {/* FOOTER */}
       <footer className="w-full max-w-5xl mx-auto px-6 md:px-12 pt-16 flex flex-col sm:flex-row items-center justify-between text-white/20 text-[9px] uppercase tracking-[0.2em] font-medium gap-3">
-        <span>&copy; 2026 Wallovo AI Labs</span>
+        <span>&copy; 2026 Wallovo</span>
         <div className="flex gap-4 sm:gap-8 font-mono">
-          <span>Telemetric Console Handshake Stable</span>
+          <span>Dashboard Connection Active</span>
         </div>
       </footer>
     </div>

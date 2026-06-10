@@ -1,91 +1,67 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 @import "tailwindcss";
 
 @theme {
   --font-sans: "Inter", system-ui, -apple-system, sans-serif;
   --font-display: "Space Grotesk", sans-serif;
-  --font-serif: "Playfair Display", Georgia, serif;
   --font-mono: "JetBrains Mono", monospace;
   
-  --color-brand-bg-primary: #050505;
-  --color-brand-bg-card: #0D0D0D;
-  --color-brand-glow: #FFB6C9;
-  --color-brand-accent: #F472B6;
+  --color-brand-bg-primary: #0B0B0B;
+  --color-brand-bg-card: #151515;
+  --color-brand-glow: #22D3EE;
+  --color-brand-accent: #22D3EE;
   --color-brand-white: #FFFFFF;
-  --color-brand-soft: #E4E1E7;
+  --color-brand-soft: #A3A3A3;
 }
 
 @layer base {
   body {
-    background-color: var(--color-brand-bg-primary);
-    color: var(--color-brand-soft);
+    background-color: #0B0B0B;
+    color: #A3A3A3;
     font-family: var(--font-sans);
     overflow-x: hidden;
   }
 }
 
-/* Sub-surface Grid Structure - Bento Grid layout spec */
+/* Sub-surface Grid Structure - Minimal Grid layout spec */
 .subsurface-grid {
   background-image: 
-    linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
   background-size: 40px 40px;
   background-position: center;
 }
 
-/* Animation cycles */
-@keyframes idle-float {
-  0%, 100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-5px);
-  }
-}
-
-.animate-idle-float {
-  animation: idle-float 6s ease-in-out infinite;
-}
-
-.animate-idle-float-delayed {
-  animation: idle-float 6s ease-in-out infinite;
-  animation-delay: 3s;
-}
-
-/* Glass card styling helpers - Bento Grid design spec */
+/* Glass card styling helpers */
 .wallovo-glass {
-  background: rgba(13, 13, 13, 0.9);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.61);
-  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  background: #151515;
+  border: 1px solid #262626;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  transition: all 0.3s ease;
 }
 
 .wallovo-glass:hover {
-  border-color: rgba(255, 182, 201, 0.2);
-  box-shadow: 0 15px 45px rgba(255, 182, 201, 0.07);
-  transform: translateY(-2px);
+  border-color: #22D3EE;
+  box-shadow: 0 4px 25px rgba(34, 211, 238, 0.08);
 }
 
 .wallovo-glass-hover:hover {
-  border-color: rgba(255, 182, 201, 0.25);
-  box-shadow: 0 15px 40px rgba(255, 182, 201, 0.06);
+  border-color: #22D3EE;
 }
 
 /* Scrollbar styling */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #050505;
+  background: #0B0B0B;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 182, 201, 0.1);
+  background: #262626;
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 182, 201, 0.25);
+  background: #22D3EE;
 }
 

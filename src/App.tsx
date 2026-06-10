@@ -16,7 +16,6 @@ import PricingPanel from './components/PricingPanel';
 import FaqAccordion from './components/FaqAccordion';
 import Footer from './components/Footer';
 import DashboardView from './components/DashboardView';
-import SubmitReviewModal from './components/SubmitReviewModal';
 
 export default function App() {
   const { session, user, authReady, logout } = useAuth();
@@ -31,9 +30,6 @@ export default function App() {
   // Storing this at the parent level ensures that newly submitted reviews instantly show up 
   // in BOTH the Widget Builder AND the Dashboard Inbox / Analytics views!
   const [testimonials, setTestimonials] = useState<Testimonial[]>(INITIAL_TESTIMONIALS);
-  
-  // Submit modal toggle state
-  const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
 
   // General Notification feedback system
   const [notification, setNotification] = useState<{
@@ -99,18 +95,17 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#050505] text-brand-soft font-sans relative flex flex-col justify-between selection:bg-[#FFB6C9] selection:text-black">
+    <div className="min-h-screen bg-[#0B0B0B] text-neutral-400 font-sans relative flex flex-col justify-between selection:bg-[#22D3EE] selection:text-black">
       {/* Sub-surface grid lines overlaying pages */}
       <div className="absolute inset-0 z-0 subsurface-grid opacity-30 pointer-events-none" />
 
-      {/* Luxury Compact Navbar */}
+      {/* Compact Navbar */}
       <Navbar 
         activeView={activeView} 
         setActiveView={(v) => {
           setActiveView(v);
           handleScrollToTop();
         }}
-        onSubmitReviewClick={() => setIsSubmitModalOpen(true)}
         user={profileUser}
         onLogout={handleLogout}
       />
@@ -118,13 +113,13 @@ export default function App() {
       {/* Floating Interactive Toast Alert */}
       {notification && (
         <div className="fixed top-28 right-6 z-50 animate-bounce">
-          <div className="wallovo-glass rounded-2xl p-4 border-[#FFB6C9]/30 flex items-center gap-3 shadow-2xl relative pr-10">
-            <div className="absolute top-0 inset-x-0 h-[1.5px] bg-gradient-to-r from-transparent via-[#FFB6C9] to-transparent" />
-            <div className="w-8 h-8 rounded-full bg-pink-500/10 flex items-center justify-center border border-[#FFB6C9]/25 shrink-0">
+          <div className="wallovo-glass rounded-2xl p-4 border-[#262626] flex items-center gap-3 shadow-2xl relative pr-10">
+            <div className="absolute top-0 inset-x-0 h-[1.5px] bg-gradient-to-r from-transparent via-[#22D3EE] to-transparent" />
+            <div className="w-8 h-8 rounded-full bg-cyan-500/10 flex items-center justify-center border border-[#262626] shrink-0">
               {notification.type === 'success' ? (
-                <CheckCircle className="w-4 h-4 text-[#FFB6C9]" />
+                <CheckCircle className="w-4 h-4 text-[#22D3EE]" />
               ) : (
-                <Info className="w-4 h-4 text-pink-300" />
+                <Info className="w-4 h-4 text-cyan-300" />
               )}
             </div>
             <div className="text-left font-sans">
@@ -154,7 +149,6 @@ export default function App() {
                   window.location.href = '/login.html';
                 }
               }}
-              onSubmitReviewClick={() => setIsSubmitModalOpen(true)}
             />
 
             {/* Simulated Live Grid custom widget compiler */}
@@ -191,13 +185,6 @@ export default function App() {
             widgetElem.scrollIntoView({ behavior: 'smooth' });
           }
         }}
-      />
-
-      {/* Global Interactive Submit Testimonial Overlay Modal */}
-      <SubmitReviewModal 
-        isOpen={isSubmitModalOpen} 
-        onClose={() => setIsSubmitModalOpen(false)}
-        onSubmit={handleAddTestimonial}
       />
     </div>
   );
