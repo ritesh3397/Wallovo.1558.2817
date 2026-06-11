@@ -24,17 +24,30 @@ export default function Dashboard() {
   const [dbError, setDbError] = useState(null);
   const [showSqlGuide, setShowSqlGuide] = useState(false);
 
+  console.log("[Dashboard.jsx] Hook initialization - States:", {
+    session,
+    loading,
+    userProfile,
+    testimonialsCount: testimonials.length,
+    filter,
+    dbError,
+    showSqlGuide
+  });
+
   const username = userProfile?.username || 'operator';
   const collectionLink = `${window.location.origin}/collect/${username}`;
 
   // Load active session and bootstrap user data
   useEffect(() => {
+    console.log("[Dashboard.jsx] Mount useEffect triggered");
     async function initDashboard() {
+      console.log("[Dashboard.jsx] initDashboard started");
       try {
         const { data: { session: activeSession }, error: sessionErr } = await supabase.auth.getSession();
+        console.log("[Dashboard.jsx] getSession response received:", { activeSession, sessionErr });
         
         if (sessionErr || !activeSession) {
-          console.warn("Unauthorized access. Redirecting to login portal...");
+          console.warn("[Dashboard.jsx] Unauthorized access. Redirecting to login portal...");
           window.location.href = '/login.html';
           return;
         }
@@ -42,11 +55,13 @@ export default function Dashboard() {
         setSession(activeSession);
         
         // Fetch or create profile & testimonials
+        console.log("[Dashboard.jsx] Fetching user profile & testimonials...");
         await loadUserData(activeSession);
       } catch (err) {
-        console.error("Dashboard mount execution error:", err);
+        console.error("[Dashboard.jsx] Dashboard mount execution error:", err);
         window.location.href = '/login.html';
       } finally {
+        console.log("[Dashboard.jsx] Setting loading to false");
         setLoading(false);
       }
     }
@@ -322,6 +337,16 @@ CREATE POLICY "Users update own profile" ON public.users FOR UPDATE USING (auth.
 CREATE POLICY "Anyone insert testimonials" ON public.testimonials FOR INSERT WITH CHECK (true);
 CREATE POLICY "Users select own testimonials" ON public.testimonials FOR SELECT USING (auth.uid() = user_id);
 CREATE POLICY "Users modify own testimonials" ON public.testimonials FOR ALL USING (auth.uid() = user_id);`;
+
+  console.log("[Dashboard.jsx] Rendering Dashboard component structure. State values:", {
+    sessionExists: !!session,
+    loadingEnabled: loading,
+    userProfileFound: !!userProfile,
+    testimonialsLength: testimonials.length,
+    activeFilterMode: filter,
+    dbErrorState: dbError,
+    showSqlGuideState: showSqlGuide
+  });
 
   return (
     <div className="min-h-screen flex flex-col justify-between font-sans relative pb-16">
