@@ -37,6 +37,10 @@ export default function Dashboard() {
   const [dbError, setDbError] = useState(null);
   const [showSqlGuide, setShowSqlGuide] = useState(false);
 
+  // Embed Feature State
+  const [showEmbedModal, setShowEmbedModal] = useState(false);
+  const [embedCopied, setEmbedCopied] = useState(false);
+
   console.log("[Dashboard.jsx] Hook initialization - States:", {
     session,
     loading,
@@ -49,6 +53,7 @@ export default function Dashboard() {
 
   const username = userProfile?.username || 'operator';
   const collectionLink = `${window.location.origin}/collect/${username}`;
+  const embedLink = `${window.location.origin}/embed/${username}`;
 
   // Load active session and bootstrap user data
   useEffect(() => {
@@ -890,6 +895,41 @@ CREATE TABLE IF NOT EXISTS public.testimonials (
                 </div>
               </div>
 
+              {filter === 'approved' && (
+                <div className="bg-zinc-900/30 border border-zinc-800/80 p-5 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-left animate-fade-in relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/5 rounded-full blur-[40px] pointer-events-none" />
+                  <div className="space-y-1">
+                    <span className="text-[10px] font-bold font-mono tracking-widest text-[#00E5FF] uppercase block">
+                      Approved Embed Channel
+                    </span>
+                    <p className="text-xs text-slate-400 font-sans leading-relaxed">
+                      Publish and broadcast only your approved social proof logs live to your external landing pages.
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3 shrink-0">
+                    <a
+                      href={embedLink}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="px-4 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 hover:border-cyan-500/30 text-white font-bold font-mono text-[11px] rounded-lg transition duration-200 flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <Globe className="w-3.5 h-3.5 text-[#00E5FF]" />
+                      <span>Public View</span>
+                    </a>
+                    <button
+                      onClick={() => {
+                        setEmbedCopied(false);
+                        setShowEmbedModal(true);
+                      }}
+                      className="px-4 py-2 bg-cyan-500 hover:bg-cyan-400 text-black font-extrabold font-mono text-[11px] rounded-lg transition duration-200 flex items-center gap-1.5 cursor-pointer"
+                    >
+                      <Sliders className="w-3.5 h-3.5" />
+                      <span>Embed Code</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {/* LIST RESPONSE */}
               {filteredTestimonials.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-20 bg-black/40 rounded-xl border border-dashed border-zinc-900">
@@ -1247,6 +1287,78 @@ CREATE TABLE IF NOT EXISTS public.testimonials (
         </footer>
 
       </div>
+
+      {showEmbedModal && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in text-left">
+          <div className="bg-zinc-950 border border-zinc-900 w-full max-w-lg rounded-2xl p-6 relative overflow-hidden shadow-2xl">
+            {/* Top Cyan Accent bar */}
+            <div className="absolute top-0 inset-x-0 h-[1.5px] bg-[#00E5FF]" />
+            <div className="absolute top-0 right-0 w-24 h-24 bg-cyan-500/5 rounded-full blur-[40px] pointer-events-none" />
+
+            {/* Header */}
+            <div className="flex items-center justify-between pb-4 border-b border-zinc-900">
+              <div className="flex items-center gap-2">
+                <Sliders className="w-4.5 h-4.5 text-[#00E5FF]" />
+                <h3 className="text-sm font-bold text-white font-mono uppercase tracking-wider">
+                  NATIVE EMBED CHANNEL SNIPPET
+                </h3>
+              </div>
+              <button
+                onClick={() => setShowEmbedModal(false)}
+                className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-zinc-900/60 transition cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="space-y-4 pt-4 text-left">
+              <p className="text-xs text-slate-300 font-sans leading-relaxed">
+                Copy and paste the responsive HTML iframe code segment below inside your web host or custom website builder (Webflow, Framer, WordPress, Shopify, or raw HTML) to render approved testimonials instantly:
+              </p>
+
+              <div className="bg-black border border-zinc-900 p-4 rounded-xl relative group">
+                <pre className="text-[10.5px] text-emerald-400 font-mono overflow-x-auto select-all p-1 leading-relaxed whitespace-pre-wrap break-all pr-12">
+                  {`<iframe\n  src="${embedLink}"\n  width="100%"\n  height="600"\n  style="border:none;border-radius:12px;">\n</iframe>`}
+                </pre>
+                
+                <button
+                  onClick={() => {
+                    const code = `<iframe\n  src="${embedLink}"\n  width="100%"\n  height="600"\n  style="border:none;border-radius:12px;">\n</iframe>`;
+                    navigator.clipboard.writeText(code);
+                    setEmbedCopied(true);
+                    triggerNotification("Iframe code copied successfully!");
+                    setTimeout(() => setEmbedCopied(false), 2000);
+                  }}
+                  className="absolute right-3 top-3 bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-slate-300 hover:text-white p-2 rounded-lg transition cursor-pointer"
+                  title="Copy Code"
+                >
+                  {embedCopied ? <Check className="w-3.5 h-3.5 text-[#00E5FF]" /> : <Copy className="w-3.5 h-3.5" />}
+                </button>
+              </div>
+
+              {/* Informational Guidance */}
+              <div className="flex gap-2.5 bg-[#00E5FF]/5 border border-[#00E5FF]/10 p-3.5 rounded-xl">
+                <Info className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
+                <div className="text-[10.5px] text-slate-400 font-sans leading-normal">
+                  <strong className="text-white block font-mono mb-0.5">ADMIN SECURITY CONTROLS ACTIVE</strong>
+                  This dynamic embed strictly queries <span className="text-[#00E5FF] font-mono">Approved</span> testimonials from <span className="text-white font-semibold">@{username}</span>. Pending reviews, rejected items, and client emails are hidden entirely automatically.
+                </div>
+              </div>
+            </div>
+
+            {/* Footer action button */}
+            <div className="flex items-center justify-end gap-3 pt-5 border-t border-zinc-900 mt-5">
+              <button
+                onClick={() => setShowEmbedModal(false)}
+                className="bg-zinc-900 hover:bg-zinc-800 text-white font-bold font-mono text-[11px] px-4 py-2 rounded-lg transition overflow-hidden cursor-pointer"
+              >
+                Close Panel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

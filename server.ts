@@ -78,6 +78,35 @@ async function startServer() {
     }
   });
 
+  // Intercept embedded iframe routes beautifully (registered before Vite / static middlewares)
+  app.get(["/embed/:username", "/embed/:username/"], async (req, res, next) => {
+    try {
+      console.log(`[Route Match] Matching /embed/:username for url: ${req.url}`);
+      const embedHtmlPath = path.resolve(process.cwd(), "embed.html");
+      
+      if (process.env.NODE_ENV !== "production") {
+        if (!fs.existsSync(embedHtmlPath)) {
+          return res.status(500).send(`Error: embed.html does not exist at ${embedHtmlPath}`);
+        }
+        let template = fs.readFileSync(embedHtmlPath, "utf-8");
+        if (vite) {
+          template = await vite.transformIndexHtml(req.originalUrl || req.url, template);
+        }
+        return res.status(200).set({ "Content-Type": "text/html" }).end(template);
+      } else {
+        const prodHtmlPath = path.join(process.cwd(), "dist", "embed.html");
+        if (fs.existsSync(prodHtmlPath)) {
+          return res.sendFile(prodHtmlPath);
+        } else {
+          return res.status(500).send(`Error: dist/embed.html does not exist at ${prodHtmlPath}`);
+        }
+      }
+    } catch (err: any) {
+      console.error("[Route Error] Fail in /embed/:username", err);
+      res.status(500).send(`Internal Server Error during rendering embed.html: ${err.message || err}`);
+    }
+  });
+
   // Clean URLs routing handler (registered before Vite / static middlewares)
   app.use(async (req, res, next) => {
     const urlPath = req.path;
@@ -93,7 +122,7 @@ async function startServer() {
     }
     
     const matchedFiles = [
-      "login", "signup", "dashboard", "profile", "collect", 
+      "login", "signup", "dashboard", "profile", "collect", "embed",
       "minimal-auth-test", "supabase-test"
     ];
     
