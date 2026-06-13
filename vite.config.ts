@@ -20,6 +20,9 @@ export default defineConfig(({ mode }) => {
             } else if (parsedUrl.startsWith('/embed/')) {
               const query = req.url && req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : '';
               req.url = '/embed.html' + query;
+            } else if (parsedUrl.startsWith('/u/')) {
+              const query = req.url && req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : '';
+              req.url = '/u.html' + query;
             } else if (parsedUrl === '/route-test') {
               res.statusCode = 200;
               res.setHeader('Content-Type', 'text/plain');
@@ -45,6 +48,7 @@ export default defineConfig(({ mode }) => {
           dashboard: path.resolve(__dirname, 'dashboard.html'),
           collect: path.resolve(__dirname, 'collect.html'),
           embed: path.resolve(__dirname, 'embed.html'),
+          u: path.resolve(__dirname, 'u.html'),
           profile: path.resolve(__dirname, 'profile.html'),
           supabasetest: path.resolve(__dirname, 'supabase-test.html'),
           minimalauthtest: path.resolve(__dirname, 'minimal-auth-test.html'),

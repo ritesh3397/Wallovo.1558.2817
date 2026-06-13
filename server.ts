@@ -107,6 +107,35 @@ async function startServer() {
     }
   });
 
+  // Intercept public wall routes beautifully (registered before Vite / static middlewares)
+  app.get(["/u/:username", "/u/:username/"], async (req, res, next) => {
+    try {
+      console.log(`[Route Match] Matching /u/:username for url: ${req.url}`);
+      const wallHtmlPath = path.resolve(process.cwd(), "u.html");
+      
+      if (process.env.NODE_ENV !== "production") {
+        if (!fs.existsSync(wallHtmlPath)) {
+          return res.status(500).send(`Error: u.html does not exist at ${wallHtmlPath}`);
+        }
+        let template = fs.readFileSync(wallHtmlPath, "utf-8");
+        if (vite) {
+          template = await vite.transformIndexHtml(req.originalUrl || req.url, template);
+        }
+        return res.status(200).set({ "Content-Type": "text/html" }).end(template);
+      } else {
+        const prodHtmlPath = path.join(process.cwd(), "dist", "u.html");
+        if (fs.existsSync(prodHtmlPath)) {
+          return res.sendFile(prodHtmlPath);
+        } else {
+          return res.status(500).send(`Error: dist/u.html does not exist at ${prodHtmlPath}`);
+        }
+      }
+    } catch (err: any) {
+      console.error("[Route Error] Fail in /u/:username", err);
+      res.status(500).send(`Internal Server Error during rendering u.html: ${err.message || err}`);
+    }
+  });
+
   // Clean URLs routing handler (registered before Vite / static middlewares)
   app.use(async (req, res, next) => {
     const urlPath = req.path;
@@ -122,7 +151,7 @@ async function startServer() {
     }
     
     const matchedFiles = [
-      "login", "signup", "dashboard", "profile", "collect", "embed",
+      "login", "signup", "dashboard", "profile", "collect", "embed", "u",
       "minimal-auth-test", "supabase-test"
     ];
     
